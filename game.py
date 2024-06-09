@@ -1,8 +1,16 @@
-import pygame
-import random
+import pygame, random, playsound
 
 # Initialize Pygame
 pygame.init()
+
+#audio
+pygame.mixer.init()
+
+#backround audio
+pygame.mixer.music.load('ambience.wav')
+pygame.mixer.music.play(-1)
+
+jump_sound = pygame.mixer.Sound('jump.wav')
 
 # Screen dimensions
 SCREEN_WIDTH = 800
@@ -34,14 +42,13 @@ for i in range(20):
     obstacle_y = random.randint(0, 500)
     obstacles.append(pygame.Rect(obstacle_x, obstacle_y, obstacle_width, obstacle_height))
 
-
-
 # Clock
 clock = pygame.time.Clock()
 FPS = 60
 
 running = True
 while running:
+    #playsound.playsound("ambience.wav")
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
@@ -49,11 +56,16 @@ while running:
     keys = pygame.key.get_pressed()
     if keys[pygame.K_a]:
         player_x -= player_velocity
+
     if keys[pygame.K_d]:
         player_x += player_velocity
+
     if keys[pygame.K_w] and not is_jumping:
         is_jumping = True
         vertical_velocity = -jump_force
+        pygame.mixer.music.load('ambience.wav')
+        pygame.mixer.music.play()
+        jump_sound.play()
 
 
     # Check for collisions with obstacles
