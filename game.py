@@ -18,9 +18,6 @@ SCREEN_HEIGHT = 800
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 pygame.display.set_caption('Platformer Game')
 
-# Colors
-BLACK = (0, 0, 0)
-WHITE = (255, 255, 255)
 
 # Player properties
 player_width = 50
@@ -66,7 +63,8 @@ while running:
             running = False
 
     player_x, player_y = pygame.mouse.get_pos()
-
+    player_x -= 25
+    player_y -= 25
 
 
     # Check for collisions with obstacles
@@ -88,11 +86,11 @@ while running:
 
 
     # Drawing
-    screen.fill(BLACK)
-    pygame.draw.rect(screen, WHITE, (player_x, player_y, player_width, player_height))
+    screen.fill("black")
+    pygame.draw.rect(screen, "red", (player_x, player_y, player_width, player_height))
 
     for obstacle in obstacles:
-        pygame.draw.rect(screen, WHITE, obstacle)
+        pygame.draw.rect(screen, "white", obstacle)
         obstacle.y += 1
 
         
