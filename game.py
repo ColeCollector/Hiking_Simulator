@@ -25,7 +25,7 @@ WHITE = (255, 255, 255)
 # Player properties
 player_width = 50
 player_height = 50
-player_x = SCREEN_WIDTH // 2
+player_x = 0 + player_width
 player_y = 0 - player_height
 player_velocity = 5
 gravity = 1
@@ -34,14 +34,23 @@ is_jumping = False
 vertical_velocity = 0
 
 # Obstacles properties
-obstacle_width = 70
+obstacle_width = 100
 obstacle_height = 20
 obstacles = []
-for i in range(20):
-    obstacle_x = random.randint(0, 800)
-    obstacle_y = random.randint(0, 500)
+
+for i in range(7):
+    if random.randint(0,1) == 0: obstacle_x = random.randint(0,100)
+    else: obstacle_x = random.randint(350,450)
+        
+    obstacle_y = i*100
     obstacles.append(pygame.Rect(obstacle_x, obstacle_y, obstacle_width, obstacle_height))
 
+obstacle_height = 500
+obstacle_width = 75
+
+obstacle_x = random.randint(200,300)
+obstacle_y = random.randint(0, 500)
+obstacles.append(pygame.Rect(obstacle_x, obstacle_y, obstacle_width, obstacle_height))
 # Clock
 clock = pygame.time.Clock()
 FPS = 60
@@ -112,11 +121,13 @@ while running:
 
     for obstacle in obstacles:
         pygame.draw.rect(screen, WHITE, obstacle)
-        obstacle.y +=1
+        obstacle.y += 1
 
         if obstacle.y > 800:
             obstacle.y = 0
-            obstacle.x = random.randint(0,500)
+            if random.randint(0,1) == 0: obstacle.x = random.randint(0,100)
+            else: obstacle.x = random.randint(400,500)
+
 
 
     pygame.display.flip()
