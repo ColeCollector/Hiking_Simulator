@@ -103,7 +103,7 @@ while running:
     if player_x > SCREEN_WIDTH - player_width:
         player_x = SCREEN_WIDTH - player_width
 
-    if player_y == 550:
+    if player_y == 750:
        running = False
 
     # Drawing
@@ -114,9 +114,9 @@ while running:
         pygame.draw.rect(screen, WHITE, obstacle)
         obstacle.y +=1
 
-        if obstacle.y > 600:
+        if obstacle.y > 800:
             obstacle.y = 0
-            obstacle.x = random.randint(0,800)
+            obstacle.x = random.randint(0,500)
 
 
     pygame.display.flip()
