@@ -13,8 +13,8 @@ pygame.mixer.music.play(-1)
 jump_sound = pygame.mixer.Sound('jump.wav')
 
 # Screen dimensions
-SCREEN_WIDTH = 800
-SCREEN_HEIGHT = 600
+SCREEN_WIDTH = 500
+SCREEN_HEIGHT = 800
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 pygame.display.set_caption('Platformer Game')
 
