@@ -1,21 +1,21 @@
-import pygame,random
+import pygame, random, math
 height = 800
 width = 500
 
 # Obstacles properties
-obstacle_width = 115
+obstacle_width = 100
 obstacle_height = 20
 obstacles = []
 
 for i in range(7):
     if random.randint(0,1) == 0: obstacle_x = random.randint(0,100)
-    else: obstacle_x = random.randint(350,450)
+    else: obstacle_x = random.randint(300,400)
         
     obstacle_y = i*100
     obstacles.append(pygame.Rect(obstacle_x, obstacle_y, obstacle_width, obstacle_height))
 
-obstacle_height = 500
-obstacle_width = 100
+obstacle_height = 400
+obstacle_width = 90
 
 obstacle_x = random.randint(200,300)
 obstacle_y = random.randint(0, 500)
@@ -39,7 +39,42 @@ running = True
 walkradius = 100
 down_pos = [width/2,700]
 hoptime = 0
-image = pygame.image.load('foot.png')
+foot = pygame.image.load('foot.png')
+bloody = pygame.image.load('bloody.png')
+footprints = []
+clicked = False
+health = 300
+score = 0
+
+font = pygame.font.Font(None, 74) 
+
+#backround audio
+pygame.mixer.music.load('ambience.wav')
+pygame.mixer.music.play(-1)
+pygame.mixer.music.set_volume(0.1)
+
+def point_inside_circle(point, circle_center, circle_radius):
+    return math.hypot(point[0] - circle_center[0], point[1] - circle_center[1]) <= circle_radius
+
+def rect_circle_intersect(rect, circle_center, circle_radius):
+    # Check if any corner of the rectangle is inside the circle
+    corners = [
+        rect.topleft,
+        rect.topright,
+        rect.bottomleft,
+        rect.bottomright
+    ]
+    for corner in corners:
+        if point_inside_circle(corner, circle_center, circle_radius):
+            return True
+
+    # Check if any edge of the circle intersects with any edge of the rectangle
+    closest_x = max(rect.left, min(circle_center[0], rect.right))
+    closest_y = max(rect.top, min(circle_center[1], rect.bottom))
+    distance_x = circle_center[0] - closest_x
+    distance_y = circle_center[1] - closest_y
+    return distance_x ** 2 + distance_y ** 2 <= circle_radius ** 2
+
 
 while running:
     # poll for events
@@ -50,12 +85,12 @@ while running:
         if event.type == pygame.QUIT:
             running = False
         if event.type == pygame.MOUSEBUTTONDOWN:
-
+            clicked = True
 
             if (down_pos[0]-pos[0])**2 + (down_pos[1]-pos[1])**2 < walkradius**2:
                 down_pos = pos
                 for obstacle in obstacles:
-                    hoptime = 30
+                    hoptime = 40
             else:
 
                 pass
@@ -69,6 +104,9 @@ while running:
             obstacle.y+=hoptime
         for cloud in clouds:
             cloud[1][1] += hoptime
+        for footprint in footprints:
+            footprint[1][1]+=hoptime
+        score+=hoptime
     
     # fill the screen with a color to wipe away anything from last frame
     screen.fill("#69B1EF")
@@ -84,23 +122,53 @@ while running:
             cloud[1][0] = 0
         if cloud[1][1] > height:
             cloud[1][1] = 0
+    
+    for footprint in footprints:
+        
+        screen.blit(footprint[0],footprint[1])
 
-    # RENDER YOUR GAME HERE
+    collisions = []
     for obstacle in obstacles:
         pygame.draw.rect(screen, "white", obstacle)
+        collisions.append(rect_circle_intersect(obstacle, down_pos, walkradius))
 
         if obstacle.y > 800:
             obstacle.y = 0
-            if obstacle.height < width:
+            if obstacle.height < 400:
                 if random.randint(0,1) == 0: obstacle.x = random.randint(0,100)
-                else: obstacle.x = random.randint(400,500)
-            #else:
-            #    pass
+                else: obstacle.x = random.randint(300,400)
+            else:
+                obstacle.x = random.randint(200,300)
     
+    if True not in collisions:
+        screen.blit(bloody, (down_pos[0]-75,down_pos[1]-75))
+        health -= 0.5
+        if clicked == True:
+            footprints.append([bloody, [down_pos[0]-75,down_pos[1]-75]])
+            health-=15
+
+
+    else:
+        screen.blit(foot, (down_pos[0]-75,down_pos[1]-75))
+
+
+    clicked = False
+
+    #health bar
+    pygame.draw.rect(screen, "darkgreen", (width/2-152,68,304,34))
+    pygame.draw.rect(screen, "green", (width/2-150,70,health,30))
+
+
+    text = font.render(str(int(score/50)), True, "white")
+    text_rect = text.get_rect(center=(width/2, 35)) 
+
+
+    screen.blit(text, text_rect)
+
+    if health == 0:
+        exit()
 
     #pygame.draw.circle(screen,"black",down_pos,20)
-    screen.blit(image, (down_pos[0]-75,down_pos[1]-75))
-
     # flip() the display to put your work on screen
     pygame.display.flip()
 
