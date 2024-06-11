@@ -23,12 +23,13 @@ obstacles.append(pygame.Rect(obstacle_x, obstacle_y, obstacle_width, obstacle_he
 
 cloud1 = pygame.image.load('cloud_1.png')
 cloud2 = pygame.image.load('cloud_2.png')
+cloud3 = pygame.image.load('cloud_3.png')
 
 clouds = []
 for i in range(7):
     cloud_x = random.randint(0,400)
     cloud_y = i*100
-    clouds.append([random.choice([cloud1,cloud2]),[cloud_x, cloud_y]])
+    clouds.append([random.choice([cloud1,cloud2,cloud3]),[cloud_x, cloud_y]])
 
 # pygame setup
 pygame.init()
@@ -157,8 +158,9 @@ while running:
     text_rect = text.get_rect(center=(width/2, 35)) 
     screen.blit(text, text_rect)
 
-    if health == 0:
+    if health < 0:
         exit()
+    
 
     #pygame.draw.circle(screen,"black",down_pos,20)
 
