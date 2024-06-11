@@ -21,6 +21,16 @@ obstacle_x = random.randint(200,300)
 obstacle_y = random.randint(0, 500)
 obstacles.append(pygame.Rect(obstacle_x, obstacle_y, obstacle_width, obstacle_height))
 
+cloud1 = pygame.image.load('cloud_1.png')
+cloud2 = pygame.image.load('cloud_2.png')
+
+
+clouds = []
+for i in range(7):
+    cloud_x = random.randint(0,400)
+    cloud_y = i*100
+    clouds.append([random.choice([cloud1,cloud2]),[cloud_x, cloud_y]])
+
 # pygame setup
 pygame.init()
 screen = pygame.display.set_mode((width, height))
@@ -57,26 +67,37 @@ while running:
 
         for obstacle in obstacles:
             obstacle.y+=hoptime
+        for cloud in clouds:
+            cloud[1][1] += hoptime
     
     # fill the screen with a color to wipe away anything from last frame
-    screen.fill("#87ceeb")
+    screen.fill("#69B1EF")
+
     pygame.draw.circle(screen,"white",down_pos,walkradius+1)
-    pygame.draw.circle(screen,"#87ceeb",down_pos,walkradius)
+    pygame.draw.circle(screen,"#69B1EF",down_pos,walkradius)
     pygame.draw.circle(screen,"red",pos,20)
     
+    for cloud in clouds:
+        screen.blit(cloud[0],cloud[1])
+        cloud[1][0] += 1
+        if cloud[1][0] > width:
+            cloud[1][0] = 0
+        if cloud[1][1] > height:
+            cloud[1][1] = 0
 
     # RENDER YOUR GAME HERE
     for obstacle in obstacles:
-        pygame.draw.rect(screen, "#879ceb", obstacle)
+        pygame.draw.rect(screen, "white", obstacle)
 
         if obstacle.y > 800:
             obstacle.y = 0
-            if obstacle.height < 500:
+            if obstacle.height < width:
                 if random.randint(0,1) == 0: obstacle.x = random.randint(0,100)
                 else: obstacle.x = random.randint(400,500)
             #else:
             #    pass
     
+
     #pygame.draw.circle(screen,"black",down_pos,20)
     screen.blit(image, (down_pos[0]-75,down_pos[1]-75))
 
