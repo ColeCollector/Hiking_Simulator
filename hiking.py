@@ -24,6 +24,8 @@ obstacles.append(pygame.Rect(obstacle_x, obstacle_y, obstacle_width, obstacle_he
 cloud1 = pygame.image.load('cloud_1.png')
 cloud2 = pygame.image.load('cloud_2.png')
 cloud3 = pygame.image.load('cloud_3.png')
+log1 = pygame.image.load('log_1.png')
+
 
 clouds = []
 for i in range(7):
@@ -128,7 +130,11 @@ while running:
 
     collisions = []
     for obstacle in obstacles:
-        pygame.draw.rect(screen, "white", obstacle)
+        if obstacle.height < 400:
+            pygame.draw.rect(screen, "white", obstacle)
+        else:
+            screen.blit(log1,(obstacle.x,obstacle.y))
+            
         collisions.append(rect_circle_intersect(obstacle, down_pos, walkradius*0.8))
 
         #reset objects when the hit the bottom
