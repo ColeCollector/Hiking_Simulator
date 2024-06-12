@@ -27,7 +27,7 @@ cloud3 = pygame.image.load('cloud_3.png')
 
 clouds = []
 for i in range(7):
-    cloud_x = random.randint(0,400)
+    cloud_x = random.randint(-150,500)
     cloud_y = i*100
     clouds.append([random.choice([cloud1,cloud2,cloud3]),[cloud_x, cloud_y]])
 
@@ -103,10 +103,13 @@ while running:
     #fill the screen with a color to wipe away anything from last frame
     screen.fill("#69B1EF")
     
+
+            
     #drawing circles and such
     pygame.draw.circle(screen,"white",down_pos,walkradius+1)
     pygame.draw.circle(screen,"#69B1EF",down_pos,walkradius)
-    pygame.draw.circle(screen,"red",pos,20)
+    #pygame.draw.circle(screen,"gray",down_pos,walkradius*0.75)
+    
     
     for cloud in clouds:
         screen.blit(cloud[0],cloud[1])
@@ -114,34 +117,38 @@ while running:
 
         #when clouds drift off the screen
         if cloud[1][0] > width:
-            cloud[1][0] = 0
+            cloud[1][0] = -150
         if cloud[1][1] > height:
-            cloud[1][1] = 0
-    
+            cloud[1][1] = -50
+
+    pygame.draw.circle(screen,"red",pos,20)
+
     for footprint in footprints:
         screen.blit(footprint[0],footprint[1])
 
     collisions = []
     for obstacle in obstacles:
         pygame.draw.rect(screen, "white", obstacle)
-        collisions.append(rect_circle_intersect(obstacle, down_pos, walkradius))
+        collisions.append(rect_circle_intersect(obstacle, down_pos, walkradius*0.8))
 
         #reset objects when the hit the bottom
         if obstacle.y > 800:
-            obstacle.y = 0
+            
             if obstacle.height < 400:
                 if random.randint(0,1) == 0: obstacle.x = random.randint(0,100)
                 else: obstacle.x = random.randint(300,400)
+                obstacle.y = -50
             else:
                 obstacle.x = random.randint(200,300)
+                obstacle.y = -550
     
     #when they are not standing on a platform
     if True not in collisions:
         screen.blit(bloody, (down_pos[0]-75,down_pos[1]-75))
-        health -= 0.5
+        health -= 0.2
         if clicked == True:
             footprints.append([bloody, [down_pos[0]-75,down_pos[1]-75]])
-            health-=15
+            health -= 15
 
     #when standing on a playform
     else:
