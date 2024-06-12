@@ -144,7 +144,7 @@ while running:
     
     #when they are not standing on a platform
     if True not in collisions:
-        screen.blit(bloody, (down_pos[0]-75,down_pos[1]-75))
+        screen.blit(foot, (down_pos[0]-75,down_pos[1]-75))
         health -= 0.2
         if clicked == True:
             footprints.append([bloody, [down_pos[0]-75,down_pos[1]-75]])
@@ -165,7 +165,7 @@ while running:
     text_rect = text.get_rect(center=(width/2, 35)) 
     screen.blit(text, text_rect)
 
-    if health < 0:
+    if health <= 0:
         exit()
     
 
