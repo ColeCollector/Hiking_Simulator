@@ -96,6 +96,8 @@ while running:
                     hoptime = 40
 
     #keys = pygame.key.get_pressed()
+
+    #choosing items before the game starts
     if menu == False:
         screen.fill("black")
         for collumn in range(3):
