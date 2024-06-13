@@ -7,6 +7,8 @@ obstacle_width = 100
 obstacle_height = 20
 obstacles = []
 
+invitems = {"tent" : ["light tent","standard tent", "multi-person tent"],"matress":["no matress","inflatable matress","foam cushioned matress"],"sleeping bag":["light bag(10C)","3 season bag(-5C)","winter bag(-40)"], "shoes1":["crocs","hiking boots","work boots"],"shoes2":["crocs","hiking boots","work boots"], "clothes":["no spare clothes","an extra of everything","7 days of clothes"]}
+
 for i in range(7):
     if random.randint(0,1) == 0: obstacle_x = random.randint(0,100)
     else: obstacle_x = random.randint(300,400)
@@ -45,10 +47,19 @@ health = 300
 hoptime = 0
 score = 0
 
+#setting up inventory
+inventory = []
+
+for collumn in range(2):
+    for row in range(5):
+        inventory.append(pygame.Rect((100+(60*row), height/2-50-(60*collumn),50,50)))
+
+inventory.append(pygame.Rect((100+(60*2), height/2+25+10,50,50)))
+
 footprints = []
 running = True
 clicked = False
-menu = False
+menu = True
 
 down_pos = [width/2,700]
 
@@ -90,25 +101,26 @@ while running:
             running = False
         if event.type == pygame.MOUSEBUTTONDOWN:
             clicked = True
+            if menu == False:
+                if (width/2 + 20 > pos[0] and width/2 - 20 < pos[0]) and (680 > pos[1] and 640 < pos[1]):
+                    pygame.draw.rect(screen, "red", (width/2 - 20,640),40,40 )
             if (down_pos[0]-pos[0])**2 + (down_pos[1]-pos[1])**2 < walkradius**2:
                 down_pos = pos
                 for obstacle in obstacles:
                     hoptime = 40
+                    
 
     #keys = pygame.key.get_pressed()
 
     #choosing items before the game starts
-    if menu == False:
+    if menu == True:
         screen.fill("black")
-        for collumn in range(3):
-            for row in range(5):
-                pygame.draw.rect(screen, "#5B5B5B", (100+(60*row), height/2+25-(60*collumn),50,50))
-
-        for row in range(5):
-            pygame.draw.rect(screen, "white", (100+(60*row), height/2+25-(60*-1.5),50,50))
+        
+        for slot in inventory:
+            pygame.draw.rect(screen, "white", slot)
 
         #displaying score
-        text = font.render("inventory", True, "white")
+        text = font.render("Inventory", True, "white")
         text_rect = text.get_rect(center=(width/2, height/2-150)) 
         screen.blit(text, text_rect)
 
@@ -137,8 +149,6 @@ while running:
         #fill the screen with a color to wipe away anything from last frame
         screen.fill("#69B1EF")
         
-
-
         #drawing circles and such
         pygame.draw.circle(screen,"white",down_pos,walkradius+1)
         pygame.draw.circle(screen,"#69B1EF",down_pos,walkradius)
