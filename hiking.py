@@ -101,9 +101,11 @@ while running:
             running = False
         if event.type == pygame.MOUSEBUTTONDOWN:
             clicked = True
-            if menu == False:
-                if (width/2 + 20 > pos[0] and width/2 - 20 < pos[0]) and (680 > pos[1] and 640 < pos[1]):
-                    pygame.draw.rect(screen, "red", (width/2 - 20,640),40,40 )
+            if menu == True:
+                if (width/2 + 100 > pos[0] and width/2 - 100 < pos[0]) and (680 > pos[1] and 640 < pos[1]):
+                    menu = False
+                    #pygame.draw.rect(screen, "red", (width/2 - 20,640),40,40 )
+                    #pygame.draw.rect(screen, "red", (width/2 - 100, 640, 200, 50))
             if (down_pos[0]-pos[0])**2 + (down_pos[1]-pos[1])**2 < walkradius**2:
                 down_pos = pos
                 for obstacle in obstacles:
@@ -123,7 +125,11 @@ while running:
         text = font.render("Inventory", True, "white")
         text_rect = text.get_rect(center=(width/2, height/2-150)) 
         screen.blit(text, text_rect)
+        pygame.draw.rect(screen, "red", (width/2 - 100, 640, 200, 50))
 
+        text = font.render("EXIT", True, "white")
+        text_rect = text.get_rect(center=(width/2 , 670)) 
+        screen.blit(text, text_rect)
 
     #    if menu == False:
     #        screen.blit(darken, (0, 0))
