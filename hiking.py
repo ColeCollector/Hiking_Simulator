@@ -8,6 +8,7 @@ obstacle_height = 20
 obstacles = []
 
 invitems = {"tent" : ["light tent","standard tent", "multi-person tent"],"matress":["no matress","inflatable matress","foam cushioned matress"],"sleeping bag":["light bag(10C)","3 season bag(-5C)","winter bag(-40)"], "shoes1":["crocs","hiking boots","work boots"],"shoes2":["crocs","hiking boots","work boots"], "clothes":["no spare clothes","an extra of everything","7 days of clothes"]}
+invitems = ["light tent","standard tent", "multi-person tent"],["no matress","inflatable matress","foam cushioned matress"],["light bag(10C)","3 season bag(-5C)","winter bag(-40)"],["crocs","hiking boots","work boots"],["crocs","hiking boots","work boots"],["no spare clothes","an extra of everything","7 days of clothes"]
 
 for i in range(7):
     if random.randint(0,1) == 0: obstacle_x = random.randint(0,100)
@@ -51,10 +52,10 @@ score = 0
 inventory = []
 
 for collumn in range(2):
-    for row in range(5):
-        inventory.append(pygame.Rect((100+(60*row), height/2-50-(60*collumn),50,50)))
+    for row in range(3): inventory.append(pygame.Rect((125+(90*row), height/2-80+(90*collumn),80,80)))
+#for row in range(2): inventory.append(pygame.Rect((170+(90*row), height/2-50,80,80)))
 
-inventory.append(pygame.Rect((100+(60*2), height/2+25+10,50,50)))
+#inventory.append(pygame.Rect((100+(110), height/2+60,100,100)))
 
 footprints = []
 running = True
@@ -101,11 +102,7 @@ while running:
             running = False
         if event.type == pygame.MOUSEBUTTONDOWN:
             clicked = True
-            if menu == True:
-                if (width/2 + 100 > pos[0] and width/2 - 100 < pos[0]) and (680 > pos[1] and 640 < pos[1]):
-                    menu = False
-                    #pygame.draw.rect(screen, "red", (width/2 - 20,640),40,40 )
-                    #pygame.draw.rect(screen, "red", (width/2 - 100, 640, 200, 50))
+
             if (down_pos[0]-pos[0])**2 + (down_pos[1]-pos[1])**2 < walkradius**2:
                 down_pos = pos
                 for obstacle in obstacles:
@@ -117,39 +114,36 @@ while running:
     #choosing items before the game starts
     if menu == True:
         screen.fill("black")
-        
-        for slot in inventory:
-            pygame.draw.rect(screen, "white", slot)
 
-        #displaying score
-        text = font.render("Inventory", True, "white")
+        text = font.render("Pick one", True, "white")
         text_rect = text.get_rect(center=(width/2, height/2-150)) 
         screen.blit(text, text_rect)
-        pygame.draw.rect(screen, "red", (width/2 - 100, 640, 200, 50))
 
-        text = font.render("EXIT", True, "white")
-        text_rect = text.get_rect(center=(width/2 , 670)) 
-        screen.blit(text, text_rect)
-
-    #    if menu == False:
-    #        screen.blit(darken, (0, 0))
-    #        pygame.draw.rect(screen, "white", (width/2-152,height/2,304,10))
-    #
-    #        menu = True
-            
+        for slot in inventory:
+            if slot.collidepoint(pos):
+               pygame.draw.rect(screen, "gray", slot)
+               if clicked == True:
+                   menu = False
+                   print(invitems[inventory.index(slot)])
+            else:
+                pygame.draw.rect(screen, "white", slot)
+                    
+    
     else:
-    #    menu = False
     #Moving the obstacles when we move:
         if hoptime > 0:
             hoptime -= hoptime/3
-            if hoptime < 0.1:hoptime = 0
+            if hoptime < 0.1: hoptime = 0
 
             for obstacle in obstacles:
                 obstacle.y+=hoptime
+
             for cloud in clouds:
                 cloud[1][1] += hoptime
+
             for footprint in footprints:
                 footprint[1][1]+=hoptime
+
             score+=hoptime
         
         #fill the screen with a color to wipe away anything from last frame
@@ -166,10 +160,8 @@ while running:
             cloud[1][0] += 1
 
             #when clouds drift off the screen
-            if cloud[1][0] > width:
-                cloud[1][0] = -150
-            if cloud[1][1] > height:
-                cloud[1][1] = -50
+            if cloud[1][0] > width: cloud[1][0] = -150
+            if cloud[1][1] > height: cloud[1][1] = -50
 
         pygame.draw.circle(screen,"red",pos,20)
 
@@ -197,7 +189,7 @@ while running:
                 else:
                     obstacle.x = random.randint(200,300)
                     obstacle.y = -550
-        
+
         #when they are not standing on a platform
         if True not in collisions:
             screen.blit(foot, (down_pos[0]-75,down_pos[1]-75))
@@ -210,8 +202,6 @@ while running:
         else:
             screen.blit(foot, (down_pos[0]-75,down_pos[1]-75))
 
-        clicked = False
-
         #health bar
         pygame.draw.rect(screen, "darkgreen", (width/2-152,68,304,24))
         pygame.draw.rect(screen, "green", (width/2-150,70,health,20))
@@ -221,9 +211,9 @@ while running:
         text_rect = text.get_rect(center=(width/2, 35)) 
         screen.blit(text, text_rect)
 
-        if health <= 0:
-            exit()
+        if health <= 0: exit()
         
+        clicked = False
 
         #pygame.draw.circle(screen,"black",down_pos,20)
     
