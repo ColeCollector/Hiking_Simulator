@@ -27,7 +27,7 @@ while running:
     pos = pygame.mouse.get_pos()
 
     mouse_buttons = pygame.mouse.get_pressed()
-    if mouse_buttons[0]:
+    if mouse_buttons[0] and ignore == False:
         if locked != 3:
             pos = closest_point_on_circle(pos,feet[locked],walkradius)
         else:
@@ -51,8 +51,6 @@ while running:
 
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 3:
             ignore = True
-
-        if event.type == pygame.MOUSEBUTTONUP and event.button == 3:
             locked = 3
 
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
@@ -61,10 +59,7 @@ while running:
         if event.type == pygame.MOUSEBUTTONUP and event.button == 1 and ignore == False:
             locked = 3
             #updating the feet positions
-            print((feet[0][0]-pos[0])**2 + (feet[0][1]-pos[1])**2)
-            print((feet[1][0]-pos[0])**2 + (feet[1][1]-pos[1])**2)
-            print(walkradius**2)
-            print("\n\n")
+
             if (feet[0][0]-pos[0])**2 + (feet[0][1]-pos[1])**2 <= walkradius**2+1:
                 feet[0] = pos
 

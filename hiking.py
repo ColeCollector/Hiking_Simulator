@@ -8,7 +8,7 @@ obstacle_height = 20
 obstacles = []
 
 invitems = {"tent" : ["light tent","standard tent", "multi-person tent"],"matress":["no matress","inflatable matress","foam cushioned matress"],"sleeping bag":["light bag(10C)","3 season bag(-5C)","winter bag(-40)"], "shoes1":["crocs","hiking boots","work boots"],"shoes2":["crocs","hiking boots","work boots"], "clothes":["no spare clothes","an extra of everything","7 days of clothes"]}
-invitems = ["light tent","standard tent", "multi-person tent"],["no matress","inflatable matress","foam cushioned matress"],["light bag(10C)","3 season bag(-5C)","winter bag(-40)"],["crocs","hiking boots","work boots"],["crocs","hiking boots","work boots"],["no spare clothes","an extra of everything","7 days of clothes"]
+invitems = list(invitems.keys())
 
 for i in range(7):
     if random.randint(0,1) == 0: obstacle_x = random.randint(0,100)
@@ -24,27 +24,18 @@ obstacle_x = random.randint(100,400)
 obstacle_y = random.randint(0, 500)
 obstacles.append(pygame.Rect(obstacle_x, obstacle_y, obstacle_width, obstacle_height))
 
-cloud1 = pygame.image.load('cloud_1.png')
-cloud2 = pygame.image.load('cloud_2.png')
-cloud3 = pygame.image.load('cloud_3.png')
 log1 = pygame.image.load('log_1.png')
 log2 = pygame.image.load('log_2.png')
 
-normal = [pygame.transform.flip(pygame.image.load('boot.png'), True, False),pygame.image.load('boot.png')]
+normal = [pygame.transform.flip(pygame.image.load('foot.png'), True, False),pygame.image.load('foot.png')]
 bloody = [pygame.transform.flip(pygame.image.load('bloody.png'), True, False),pygame.image.load('bloody.png')]
-
-clouds = []
-for i in range(10):
-    cloud_x = random.randint(-150,500)
-    cloud_y = i*100
-    clouds.append([random.choice([cloud1,cloud2,cloud3]),[cloud_x, cloud_y]])
 
 # pygame setup
 pygame.init()
 screen = pygame.display.set_mode((width, height))
 clock = pygame.time.Clock()
 
-walkradius = 100
+walkradius = 95
 health = 300
 hoptime = 0
 score = 0
@@ -64,8 +55,8 @@ running = True
 clicked = False
 menu = True
 ignore = False
-bg = "#836953"
 
+bg = "#836953"
 feet = [[width/2-100,700],[width/2+100,700]]
 
 font = pygame.font.Font(None, 74) 
@@ -106,10 +97,9 @@ def closest_point_on_circle(pos, foot, walkradius):
 
 while running:
     pos = pygame.mouse.get_pos()
-
-
     mouse_buttons = pygame.mouse.get_pressed()
-    if mouse_buttons[0]:
+
+    if mouse_buttons[0] and ignore == False:
 
         if locked != 3:
             pos = closest_point_on_circle(pos,feet[locked],walkradius)
@@ -131,16 +121,16 @@ while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
-        if event.type == pygame.MOUSEBUTTONDOWN:
-            clicked = True
 
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 3:
             ignore = True
+            locked = 3
 
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
             ignore = False
 
         if event.type == pygame.MOUSEBUTTONUP and event.button == 1 and ignore == False:
+            clicked = True
             locked = 3
             hoptime = 15
             #updating the feet positions
@@ -155,7 +145,6 @@ while running:
             else:
                 bg = "#836953"
             
-
     #choosing items before the game starts
     if menu == True:
         screen.fill("black")
@@ -169,13 +158,19 @@ while running:
                pygame.draw.rect(screen, "gray", slot)
                if clicked == True:
                    menu = False
-                   print(invitems[inventory.index(slot)])
+                   #adding perks
+                   perk = invitems[inventory.index(slot)]
+
+
+                   #shoes:
+                   if perk in ["shoes1","shoes2"]:
+                        walkradius += 10
+                        normal = [pygame.transform.flip(pygame.image.load('boot.png'), True, False),pygame.image.load('boot.png')]
+                   
             else:
                 pygame.draw.rect(screen, "white", slot)
-                    
-    
-    else:
 
+    else:
         #Moving the obstacles when we move:
         if hoptime > 0:
             hoptime -= hoptime/3
@@ -191,30 +186,8 @@ while running:
                 footprint[1][1]+=hoptime
             score+=hoptime
 
-        
         #fill the screen with a color to wipe away anything from last frame
         screen.fill(bg)
-        
-
-        
-
-
-
-        #drawing circles and such
-        #pygame.draw.circle(screen,"white",down_pos,walkradius+1)
-        #pygame.draw.circle(screen,"#69B1EF",down_pos,walkradius)
-        #pygame.draw.circle(screen,"gray",down_pos,walkradius*0.75)
-
-        
-        for cloud in clouds:
-            #screen.blit(cloud[0],cloud[1])
-            cloud[1][0] += 1
-
-            #when clouds drift off the screen
-            if cloud[1][0] > width: cloud[1][0] = -150
-            if cloud[1][1] > height: cloud[1][1] = -50
-
-        
 
         for footprint in footprints:
             screen.blit(footprint[0],footprint[1])
@@ -244,9 +217,12 @@ while running:
         
         for foot in feet:
             screen.blit(normal[feet.index(foot)], (foot[0]-75,foot[1]-75))
-            if clicked == True and True not in collisions[feet.index(foot)]:
-                #footprints.append([bloody[feet.index(foot)], [foot[0]-75,foot[1]-75]])
-                health -= 15
+            if True not in collisions[feet.index(foot)]:
+                if clicked == True:
+                    #footprints.append([bloody[feet.index(foot)], [foot[0]-75,foot[1]-75]])
+                    health -= 15
+                else:
+                    health -= 0.2
 
         if bg == "red":
             health -= 0.3
@@ -265,13 +241,11 @@ while running:
         text_rect = text.get_rect(center=(width/2, 35)) 
         screen.blit(text, text_rect)
 
-        #you die if you run out of health
+        #you die if you run out of health or your feet are off the screen
         if health <= 0 or (feet[0][1] > height or feet[1][1] > height): 
             exit()
         
         clicked = False
-
-        #pygame.draw.circle(screen,"black",down_pos,20)
     
 
 
