@@ -52,27 +52,32 @@ while running:
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 3:
             ignore = True
 
+        if event.type == pygame.MOUSEBUTTONUP and event.button == 3:
+            locked = 3
+
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
             ignore = False
 
         if event.type == pygame.MOUSEBUTTONUP and event.button == 1 and ignore == False:
             locked = 3
             #updating the feet positions
+            print((feet[0][0]-pos[0])**2 + (feet[0][1]-pos[1])**2)
+            print((feet[1][0]-pos[0])**2 + (feet[1][1]-pos[1])**2)
+            print(walkradius**2)
+            print("\n\n")
             if (feet[0][0]-pos[0])**2 + (feet[0][1]-pos[1])**2 <= walkradius**2+1:
-                if pos[0] < width/2-50:
-                    feet[0] = pos
+                feet[0] = pos
 
             elif (feet[1][0]-pos[0])**2 + (feet[1][1]-pos[1])**2 <= walkradius**2+1:
-                if pos[0] > width/2+50:
-                    feet[1] = pos
+                feet[1] = pos
 
     screen.fill("#69B1EF")
 
     for foot in feet:
-        pygame.draw.circle(screen,"white",foot,walkradius+1)
-        pygame.draw.circle(screen,"#69B1EF",foot,walkradius)
+        pygame.draw.circle(screen,"white",foot,walkradius+1,1)
+        #pygame.draw.circle(screen,"#69B1EF",foot,walkradius)
         pygame.draw.circle(screen,"black",foot,20)
-    
+        
     pygame.draw.circle(screen,"red",pos,20)
 
     pygame.display.flip()

@@ -30,7 +30,7 @@ cloud3 = pygame.image.load('cloud_3.png')
 log1 = pygame.image.load('log_1.png')
 log2 = pygame.image.load('log_2.png')
 
-normal = [pygame.transform.flip(pygame.image.load('foot.png'), True, False),pygame.image.load('foot.png')]
+normal = [pygame.transform.flip(pygame.image.load('boot.png'), True, False),pygame.image.load('boot.png')]
 bloody = [pygame.transform.flip(pygame.image.load('bloody.png'), True, False),pygame.image.load('bloody.png')]
 
 clouds = []
@@ -49,9 +49,10 @@ health = 300
 hoptime = 0
 score = 0
 locked = 3
-
+walkradius = 80
 #setting up inventory
 inventory = []
+footprints = []
 
 for collumn in range(2):
     for row in range(3): inventory.append(pygame.Rect((125+(90*row), height/2-80+(90*collumn),80,80)))
@@ -59,13 +60,12 @@ for collumn in range(2):
 
 #inventory.append(pygame.Rect((100+(110), height/2+60,100,100)))
 
-footprints = []
 running = True
 clicked = False
 menu = True
 ignore = False
+bg = "#836953"
 
-walkradius = 80
 feet = [[width/2-100,700],[width/2+100,700]]
 
 font = pygame.font.Font(None, 74) 
@@ -142,16 +142,19 @@ while running:
 
         if event.type == pygame.MOUSEBUTTONUP and event.button == 1 and ignore == False:
             locked = 3
+            hoptime = 15
             #updating the feet positions
-            if (feet[0][0]-pos[0])**2 + (feet[0][1]-pos[1])**2 <= walkradius**2+1:
-                if pos[0] < width/2-50:
-                    feet[0] = list(pos)
+            if (feet[0][0]-pos[0])**2 + (feet[0][1]-pos[1])**2 <= walkradius**2+5:
+                feet[0] = list(pos)
 
-            elif (feet[1][0]-pos[0])**2 + (feet[1][1]-pos[1])**2 <= walkradius**2+1:
-                if pos[0] > width/2+50:
-                    feet[1] = list(pos)
-    
+            elif (feet[1][0]-pos[0])**2 + (feet[1][1]-pos[1])**2 <= walkradius**2+5:
+                feet[1] = list(pos)
 
+            if feet[0][0] > feet[1][0]:
+                bg = "red"
+            else:
+                bg = "#836953"
+            
 
     #choosing items before the game starts
     if menu == True:
@@ -174,29 +177,27 @@ while running:
     else:
 
         #Moving the obstacles when we move:
+        if hoptime > 0:
+            hoptime -= hoptime/3
+            if hoptime < 0.1:hoptime = 0
 
-        for obstacle in obstacles:
-            obstacle.y+=1
+            for obstacle in obstacles:
+                obstacle.y+=hoptime
 
-        for cloud in clouds:
-            cloud[1][1] += 1
+            for foot in feet:
+                foot[1] += hoptime
 
-        for footprint in footprints:
-            footprint[1][1]+=1
-        
- 
-        for foot in feet:
-            foot[1] += 1
-        score+=0.1
+            for footprint in footprints:
+                footprint[1][1]+=hoptime
+            score+=hoptime
+
         
         #fill the screen with a color to wipe away anything from last frame
-        screen.fill("#69B1EF")
+        screen.fill(bg)
         
 
         
-        for foot in feet:
-            pygame.draw.circle(screen,"white",foot,walkradius+1)
-            pygame.draw.circle(screen,"#69B1EF",foot,walkradius)
+
 
 
         #drawing circles and such
@@ -206,7 +207,7 @@ while running:
 
         
         for cloud in clouds:
-            screen.blit(cloud[0],cloud[1])
+            #screen.blit(cloud[0],cloud[1])
             cloud[1][0] += 1
 
             #when clouds drift off the screen
@@ -244,8 +245,14 @@ while running:
         for foot in feet:
             screen.blit(normal[feet.index(foot)], (foot[0]-75,foot[1]-75))
             if clicked == True and True not in collisions[feet.index(foot)]:
-                footprints.append([bloody[feet.index(foot)], [foot[0]-75,foot[1]-75]])
+                #footprints.append([bloody[feet.index(foot)], [foot[0]-75,foot[1]-75]])
                 health -= 15
+
+        if bg == "red":
+            health -= 0.3
+            
+        for foot in feet:
+            pygame.draw.circle(screen,"white",foot,walkradius+1,1)
 
         pygame.draw.circle(screen,"red",pos,15)
         
@@ -258,7 +265,9 @@ while running:
         text_rect = text.get_rect(center=(width/2, 35)) 
         screen.blit(text, text_rect)
 
-        if health <= 0: exit()
+        #you die if you run out of health
+        if health <= 0 or (feet[0][1] > height or feet[1][1] > height): 
+            exit()
         
         clicked = False
 
