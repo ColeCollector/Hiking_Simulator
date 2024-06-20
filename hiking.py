@@ -8,14 +8,13 @@ pygame.init()
 screen = pygame.display.set_mode((width, height))
 clock = pygame.time.Clock()
 
+invitems = {"tent" : ["light tent","standard tent", "multi-person tent"],"matress":["no matress","inflatable matress","foam cushioned matress"],"sleeping bag":["light bag(10C)","3 season bag(-5C)","winter bag(-40)"], "shoes1":["crocs","hiking boots","work boots"],"shoes2":["crocs","hiking boots","work boots"], "clothes":["no spare clothes","an extra of everything","7 days of clothes"]}
+invitems = list(invitems.keys())
 
 # Obstacles properties
 obstacle_width = 100
 obstacle_height = 20
 obstacles = []
-
-invitems = {"tent" : ["light tent","standard tent", "multi-person tent"],"matress":["no matress","inflatable matress","foam cushioned matress"],"sleeping bag":["light bag(10C)","3 season bag(-5C)","winter bag(-40)"], "shoes1":["crocs","hiking boots","work boots"],"shoes2":["crocs","hiking boots","work boots"], "clothes":["no spare clothes","an extra of everything","7 days of clothes"]}
-invitems = list(invitems.keys())
 
 for i in range(7):
     if random.randint(0,1) == 0: obstacle_x = random.randint(0,100)
@@ -64,9 +63,10 @@ hoptime = 0
 score = 0
 locked = 3
 walkradius = 80
-#setting up inventory
+
+
 inventory = []
-footprints = []
+#footprints = []
 
 for collumn in range(2):
     for row in range(3): inventory.append(pygame.Rect((125+(90*row), height/2-80+(90*collumn),80,80)))
@@ -78,9 +78,9 @@ running = True
 clicked = False
 menu = True
 ignore = False
+boulder = False
+
 defaultbg = "#442323"
-
-
 bg = defaultbg
 feet = [[width/2-100,700],[width/2+100,700]]
 
@@ -120,6 +120,17 @@ def closest_point_on_circle(pos, foot, walkradius):
 
     return [closest_x, closest_y]
 
+
+def circles_intersect(circle1_pos, circle1_radius, circle2_pos, circle2_radius):
+    # Calculate the distance between the centers of the circles
+    distance = math.sqrt((circle1_pos[0] - circle2_pos[0])**2 + (circle1_pos[1] - circle2_pos[1])**2)
+
+    # Check if the distance is less than the sum of the radii
+    if distance < circle1_radius + circle2_radius:
+        return True
+    else:
+        return False
+    
 while running:
     pos = pygame.mouse.get_pos()
     mouse_buttons = pygame.mouse.get_pressed()
@@ -208,20 +219,33 @@ while running:
                    #adding perks
                    perk = invitems[inventory.index(slot)]
 
-
                    #shoes:
                    if perk in ["shoes1","shoes2"]:
                         walkradius += 10
                         normal = [pygame.transform.flip(pygame.image.load('boot.png'), True, False),pygame.image.load('boot.png')]
-                   else:
-                       defaultbg = "#69B1EF"
-                       bg = defaultbg
-                       log2 = pygame.image.load('boulder.png')
-                       shadow2 = shadow(log2)
+
             else:   
                 pygame.draw.rect(screen, "white", slot)
 
     else:
+        if boulder == False and score/50 > 25:
+            boulder = True
+            defaultbg = "#69B1EF"
+            bg = defaultbg
+            log2 = pygame.image.load('boulder.png')
+            shadow2 = shadow(log2)
+
+
+            obstacles = []
+
+            for i in range(3):
+                if random.randint(0,1) == 0: 
+                    obstacle_x = random.randint(100,width-100)
+
+                    
+                obstacle_y = i*300
+                obstacles.append(pygame.Rect(obstacle_x, obstacle_y, 0,0))
+                
         #Moving the obstacles when we move:
         if hoptime > 0:
             hoptime -= hoptime/3
@@ -233,30 +257,41 @@ while running:
             for foot in feet:
                 foot[1] += hoptime
 
-            for footprint in footprints:
-                footprint[1][1]+=hoptime
+            #for footprint in footprints:
+            #    footprint[1][1]+=hoptime
             score+=hoptime
 
         #fill the screen with a color to wipe away anything from last frame
         screen.fill(bg)
 
-        for footprint in footprints:
-            screen.blit(footprint[0],footprint[1])
+        #for footprint in footprints:
+        #    screen.blit(footprint[0],footprint[1])
 
         collisions = [[],[]]
         for obstacle in obstacles:
-            if obstacle.height < 400:
+            if obstacle.width == 100:
+                #checking/printing the ladder steps 
                 screen.blit(shadow2,(obstacle.x,obstacle.y+4))
                 screen.blit(log2,(obstacle.x,obstacle.y))
-                
+                collisions[0].append(rect_circle_intersect(obstacle, feet[0], walkradius*0.8))
+                collisions[1].append(rect_circle_intersect(obstacle, feet[1], walkradius*0.8))
 
-            else:
+                
+            elif obstacle.width == 90:
+                #checking/printing the skinny logs
                 screen.blit(shadow1,(obstacle.x-33,obstacle.y+4))
                 screen.blit(log1,(obstacle.x-33,obstacle.y))
-                #pygame.draw.rect(screen, "white", obstacle)
-            
-            collisions[0].append(rect_circle_intersect(obstacle, feet[0], walkradius*0.8))
-            collisions[1].append(rect_circle_intersect(obstacle, feet[1], walkradius*0.8))
+                collisions[0].append(rect_circle_intersect(obstacle, feet[0], walkradius*0.8))
+                collisions[1].append(rect_circle_intersect(obstacle, feet[1], walkradius*0.8))
+
+            else:
+                #checking/printing the boulders
+                screen.blit(shadow2,(obstacle.x-125,obstacle.y+4-125))
+                screen.blit(log2,(obstacle.x-125,obstacle.y-125))
+                #pygame.draw.circle(screen,"green",[obstacle[0],obstacle[1]],120)
+                collisions[0].append(circles_intersect(feet[0], walkradius*0.8,[obstacle[0],obstacle[1]],120))
+                collisions[1].append(circles_intersect(feet[1], walkradius*0.8,[obstacle[0],obstacle[1]],120))
+
 
             #reset objects when the hit the bottom
             if obstacle.y > 800:
@@ -280,6 +315,8 @@ while running:
 
         if bg == "red":
             health -= 0.3
+        elif health < 300:
+            health += 0.1
             
         for foot in feet:
             pygame.draw.circle(screen,"white",foot,walkradius+1,1)
