@@ -16,19 +16,20 @@ obstacle_width = 100
 obstacle_height = 20
 obstacles = []
 
-for i in range(7):
+for i in range(8):
     if random.randint(0,1) == 0: obstacle_x = random.randint(0,100)
     else: obstacle_x = random.randint(300,400)
         
-    obstacle_y = i*100
+    obstacle_y = i*120
     obstacles.append(pygame.Rect(obstacle_x, obstacle_y, obstacle_width, obstacle_height))
 
 obstacle_height = 400
 obstacle_width = 90
 
-obstacle_x = random.randint(100,400)
-obstacle_y = random.randint(0, 500)
-obstacles.append(pygame.Rect(obstacle_x, obstacle_y, obstacle_width, obstacle_height))
+for i in range(1,3):
+    obstacle_x = random.randint(100,300)
+    obstacle_y = i*600-700
+    obstacles.append(pygame.Rect(obstacle_x, obstacle_y, obstacle_width, obstacle_height))
 
 log1 = pygame.image.load('log_1.png')
 log2 = pygame.image.load('log_2.png')
@@ -236,7 +237,7 @@ while running:
                 pygame.draw.rect(screen, "white", slot)
 
     else:
-        if boulder == False and score/50 > 25:
+        if boulder == False and score/50 > 50:
             boulder = True
             defaultbg = "#69B1EF"
             bg = defaultbg
@@ -273,7 +274,7 @@ while running:
 
         collisions = [[],[]]
         for obstacle in obstacles:
-            
+
             if obstacle.width == 100:
                 #checking/printing the ladder steps 
                 screen.blit(shadow2,(obstacle.x,obstacle.y+4))
@@ -283,7 +284,7 @@ while running:
 
                 
             elif obstacle.width == 90:
-                #checking/printing the skinny logs
+                #checking/printing the tall logs
                 screen.blit(shadow1,(obstacle.x-33,obstacle.y+4))
                 screen.blit(log1,(obstacle.x-33,obstacle.y))
                 collisions[0].append(rect_circle_intersect(obstacle, feet[0], walkradius*0.8))
@@ -301,14 +302,14 @@ while running:
             #reset objects when the hit the bottom
             if obstacle.y > 800:
                 
-                if obstacle.height == 100:
+                if obstacle.width == 100:
                     if random.randint(0,1) == 0: obstacle.x = random.randint(0,100)
                     else: obstacle.x = random.randint(300,400)
-                    obstacle.y = -50
+                    obstacle.y = -400
 
-                elif obstacle.height == 90:
-                    obstacle.x = random.randint(100,400)
-                    obstacle.y = -550
+                elif obstacle.width == 90:
+                    obstacle.x = random.randint(100,300)
+                    obstacle.y = -400
 
                 else:
                     obstacle.x = random.randint(100,400)
@@ -344,7 +345,10 @@ while running:
 
         #you die if you run out of health or your feet are off the screen
         if health <= 0 or (feet[0][1] > height or feet[1][1] > height): 
+            print(score)
             exit()
+            
+
         clicked = False
 
     pygame.display.flip()
