@@ -93,7 +93,6 @@ pygame.mixer.music.load('ambience.wav')
 pygame.mixer.music.play(-1)
 pygame.mixer.music.set_volume(0.05)
 
-
 def rect_circle_intersect(rect, circle_center, circle_radius):
     #Check if any corner of the rectangle is inside the circle
     corners = [
@@ -119,7 +118,6 @@ def closest_point_on_circle(pos, foot, walkradius):
     closest_y = foot[1] + walkradius * (pos[1] - foot[1]) / distance
 
     return [closest_x, closest_y]
-
 
 def circles_intersect(circle1_pos, circle1_radius, circle2_pos, circle2_radius):
     # Calculate the distance between the centers of the circles
@@ -169,15 +167,17 @@ while running:
             clicked = True
             hoptime = 15
 
+            #this uses the width as a counter for how 
+            # long the boulder will be gone
+
             if boulder == True:
                 for obstacle in obstacles:
-                    if obstacle.width != 0: obstacle.width-=1
+                    if obstacle.width != 0: obstacle.width -= 1
 
-            if boulder == True and random.randint(0,3) == 0:
-                obstacles[random.randint(0,len(obstacles)-1)].width = 3
-            
-            
-                
+            if boulder == True and random.randint(0,6) == 0:
+                obstacles[random.randint(0,len(obstacles)-1)].width = 2
+
+            #distance of first foot and second foot
             first = (feet[0][0]-pos[0])**2 + (feet[0][1]-pos[1])**2 
             second = (feet[1][0]-pos[0])**2 + (feet[1][1]-pos[1])**2 
 
@@ -232,7 +232,6 @@ while running:
                    if perk in ["shoes1","shoes2"]:
                         walkradius += 10
                         normal = [pygame.transform.flip(pygame.image.load('boot.png'), True, False),pygame.image.load('boot.png')]
-
             else:   
                 pygame.draw.rect(screen, "white", slot)
 
@@ -243,12 +242,10 @@ while running:
             bg = defaultbg
             log2 = pygame.image.load('boulder.png')
             shadow2 = shadow(log2)
-
-
             obstacles = []
 
             for i in range(3):
-                obstacle_x = random.randint(100,width-100)
+                obstacle_x = random.randint(100,400)
 
                 obstacle_y = i*300
                 obstacles.append(pygame.Rect(obstacle_x, obstacle_y, 0,0))
@@ -301,18 +298,22 @@ while running:
                     collisions[0].append(circles_intersect(feet[0], walkradius*0.8,[obstacle[0],obstacle[1]],120))
                     collisions[1].append(circles_intersect(feet[1], walkradius*0.8,[obstacle[0],obstacle[1]],120))
 
-
             #reset objects when the hit the bottom
             if obstacle.y > 800:
                 
-                if obstacle.height < 400:
+                if obstacle.height == 100:
                     if random.randint(0,1) == 0: obstacle.x = random.randint(0,100)
                     else: obstacle.x = random.randint(300,400)
                     obstacle.y = -50
-                else:
+
+                elif obstacle.height == 90:
                     obstacle.x = random.randint(100,400)
                     obstacle.y = -550
-        
+
+                else:
+                    obstacle.x = random.randint(100,400)
+                    obstacle.y = -100
+
         for foot in feet:
             screen.blit(normal[feet.index(foot)], (foot[0]-75,foot[1]-75))
             if True not in collisions[feet.index(foot)]:
@@ -344,10 +345,7 @@ while running:
         #you die if you run out of health or your feet are off the screen
         if health <= 0 or (feet[0][1] > height or feet[1][1] > height): 
             exit()
-        
         clicked = False
-    
-
 
     pygame.display.flip()
     clock.tick(60)  # limits FPS to 60
