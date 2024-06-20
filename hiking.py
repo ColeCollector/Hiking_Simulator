@@ -169,6 +169,15 @@ while running:
             clicked = True
             hoptime = 15
 
+            if boulder == True:
+                for obstacle in obstacles:
+                    if obstacle.width != 0: obstacle.width-=1
+
+            if boulder == True and random.randint(0,3) == 0:
+                obstacles[random.randint(0,len(obstacles)-1)].width = 3
+            
+            
+                
             first = (feet[0][0]-pos[0])**2 + (feet[0][1]-pos[1])**2 
             second = (feet[1][0]-pos[0])**2 + (feet[1][1]-pos[1])**2 
 
@@ -239,10 +248,8 @@ while running:
             obstacles = []
 
             for i in range(3):
-                if random.randint(0,1) == 0: 
-                    obstacle_x = random.randint(100,width-100)
+                obstacle_x = random.randint(100,width-100)
 
-                    
                 obstacle_y = i*300
                 obstacles.append(pygame.Rect(obstacle_x, obstacle_y, 0,0))
                 
@@ -269,6 +276,7 @@ while running:
 
         collisions = [[],[]]
         for obstacle in obstacles:
+            
             if obstacle.width == 100:
                 #checking/printing the ladder steps 
                 screen.blit(shadow2,(obstacle.x,obstacle.y+4))
@@ -285,12 +293,13 @@ while running:
                 collisions[1].append(rect_circle_intersect(obstacle, feet[1], walkradius*0.8))
 
             else:
-                #checking/printing the boulders
-                screen.blit(shadow2,(obstacle.x-125,obstacle.y+4-125))
-                screen.blit(log2,(obstacle.x-125,obstacle.y-125))
-                #pygame.draw.circle(screen,"green",[obstacle[0],obstacle[1]],120)
-                collisions[0].append(circles_intersect(feet[0], walkradius*0.8,[obstacle[0],obstacle[1]],120))
-                collisions[1].append(circles_intersect(feet[1], walkradius*0.8,[obstacle[0],obstacle[1]],120))
+                if obstacle.width == 0:
+                    #checking/printing the boulders
+                    screen.blit(shadow2,(obstacle.x-125,obstacle.y+4-125))
+                    screen.blit(log2,(obstacle.x-125,obstacle.y-125))
+                    #pygame.draw.circle(screen,"green",[obstacle[0],obstacle[1]],120)
+                    collisions[0].append(circles_intersect(feet[0], walkradius*0.8,[obstacle[0],obstacle[1]],120))
+                    collisions[1].append(circles_intersect(feet[1], walkradius*0.8,[obstacle[0],obstacle[1]],120))
 
 
             #reset objects when the hit the bottom
