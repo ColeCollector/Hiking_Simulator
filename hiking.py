@@ -2,6 +2,13 @@ import pygame, random, math
 height = 800
 width = 500
 
+
+# pygame setup
+pygame.init()
+screen = pygame.display.set_mode((width, height))
+clock = pygame.time.Clock()
+
+
 # Obstacles properties
 obstacle_width = 100
 obstacle_height = 20
@@ -27,13 +34,29 @@ obstacles.append(pygame.Rect(obstacle_x, obstacle_y, obstacle_width, obstacle_he
 log1 = pygame.image.load('log_1.png')
 log2 = pygame.image.load('log_2.png')
 
+def shadow(image):
+
+    image = image.convert_alpha()
+    imgwidth, imgheight = image.get_size()
+    image.lock()
+
+    # Iterate over each pixel
+    for x in range(imgwidth):
+        for y in range(imgheight):
+            color = image.get_at((x, y))
+            if color.a != 0:
+                image.set_at((x, y), (25, 25, 25, color.a))
+
+    # Unlock the surface
+    image.unlock()
+    return image
+
+shadow1 = shadow(log1)
+shadow2 = shadow(log2)
+
 normal = [pygame.transform.flip(pygame.image.load('foot.png'), True, False),pygame.image.load('foot.png')]
 bloody = [pygame.transform.flip(pygame.image.load('bloody.png'), True, False),pygame.image.load('bloody.png')]
 
-# pygame setup
-pygame.init()
-screen = pygame.display.set_mode((width, height))
-clock = pygame.time.Clock()
 
 walkradius = 95
 health = 300
@@ -55,8 +78,10 @@ running = True
 clicked = False
 menu = True
 ignore = False
+defaultbg = "#442323"
 
-bg = "#836953"
+
+bg = defaultbg
 feet = [[width/2-100,700],[width/2+100,700]]
 
 font = pygame.font.Font(None, 74) 
@@ -131,20 +156,42 @@ while running:
 
         if event.type == pygame.MOUSEBUTTONUP and event.button == 1 and ignore == False:
             clicked = True
-            locked = 3
             hoptime = 15
-            #updating the feet positions
-            if (feet[0][0]-pos[0])**2 + (feet[0][1]-pos[1])**2 <= walkradius**2+5:
+
+            first = (feet[0][0]-pos[0])**2 + (feet[0][1]-pos[1])**2 
+            second = (feet[1][0]-pos[0])**2 + (feet[1][1]-pos[1])**2 
+
+            #moving the feet to the cursor
+            if first <= walkradius**2+5 and not second <= walkradius**2+5:
                 feet[0] = list(pos)
 
-            elif (feet[1][0]-pos[0])**2 + (feet[1][1]-pos[1])**2 <= walkradius**2+5:
+            elif second <= walkradius**2+5 and not first <= walkradius**2+5:
                 feet[1] = list(pos)
 
-            if feet[0][0] > feet[1][0]:
-                bg = "red"
-            else:
-                bg = "#836953"
+            #if the feet circles are overlapping 
+            #and you click in the overlap it moves the closest foot
             
+            elif feet[0][1] > feet[1][1]:
+                feet[0] = list(pos)
+
+            else:
+                feet[1] = list(pos)
+
+            #old code that prioritized the closest foot to cursor
+            """
+            elif first >= second:
+                print("first")
+                feet[1] = list(pos)
+
+            elif first < second:
+                print("2nd")
+                feet[0] = list(pos)
+            """
+
+            if feet[0][0] > feet[1][0]: bg = "red"
+            else: bg = defaultbg
+            locked = 3
+
     #choosing items before the game starts
     if menu == True:
         screen.fill("black")
@@ -166,8 +213,12 @@ while running:
                    if perk in ["shoes1","shoes2"]:
                         walkradius += 10
                         normal = [pygame.transform.flip(pygame.image.load('boot.png'), True, False),pygame.image.load('boot.png')]
-                   
-            else:
+                   else:
+                       defaultbg = "#69B1EF"
+                       bg = defaultbg
+                       log2 = pygame.image.load('boulder.png')
+                       shadow2 = shadow(log2)
+            else:   
                 pygame.draw.rect(screen, "white", slot)
 
     else:
@@ -195,9 +246,12 @@ while running:
         collisions = [[],[]]
         for obstacle in obstacles:
             if obstacle.height < 400:
+                screen.blit(shadow2,(obstacle.x,obstacle.y+4))
                 screen.blit(log2,(obstacle.x,obstacle.y))
+                
 
             else:
+                screen.blit(shadow1,(obstacle.x-33,obstacle.y+4))
                 screen.blit(log1,(obstacle.x-33,obstacle.y))
                 #pygame.draw.rect(screen, "white", obstacle)
             
