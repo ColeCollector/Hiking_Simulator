@@ -64,7 +64,7 @@ hoptime = 0
 score = 0
 locked = 3
 walkradius = 80
-
+jumps = 0
 
 inventory = []
 #footprints = []
@@ -167,16 +167,15 @@ while running:
         if event.type == pygame.MOUSEBUTTONUP and event.button == 1 and ignore == False:
             clicked = True
             hoptime = 15
-
+            jumps += 1
             #this uses the width as a counter for how 
             # long the boulder will be gone
 
-            if boulder == True:
-                for obstacle in obstacles:
-                    if obstacle.width != 0: obstacle.width -= 1
-
-            if boulder == True and random.randint(0,6) == 0:
-                obstacles[random.randint(0,len(obstacles)-1)].width = 2
+            if boulder == True and random.randint(0,7) == 0:
+                randobstacle = random.randint(0,len(obstacles)-1)
+                
+                if obstacles[randobstacle].height == 0:
+                    obstacles[randobstacle].height = 180
 
             #distance of first foot and second foot
             first = (feet[0][0]-pos[0])**2 + (feet[0][1]-pos[1])**2 
@@ -237,7 +236,7 @@ while running:
                 pygame.draw.rect(screen, "white", slot)
 
     else:
-        if boulder == False and score/50 > 50:
+        if boulder == False and score/50 > 2:
             boulder = True
             defaultbg = "#69B1EF"
             bg = defaultbg
@@ -291,16 +290,31 @@ while running:
                 collisions[1].append(rect_circle_intersect(obstacle, feet[1], walkradius*0.8))
 
             else:
-                if obstacle.width == 0:
-                    #checking/printing the boulders
+                #checking/printing the boulders
+                
+                if obstacle.height == 0:
                     screen.blit(shadow2,(obstacle.x-125,obstacle.y+4-125))
                     screen.blit(log2,(obstacle.x-125,obstacle.y-125))
                     #pygame.draw.circle(screen,"green",[obstacle[0],obstacle[1]],120)
                     collisions[0].append(circles_intersect(feet[0], walkradius*0.8,[obstacle[0],obstacle[1]],120))
                     collisions[1].append(circles_intersect(feet[1], walkradius*0.8,[obstacle[0],obstacle[1]],120))
 
+                else:
+                    #printing how much time is left before boulder comes back
+                    text = font.render(str(round(obstacle.height/60)), True, "white")
+                    text_rect = text.get_rect(center=(obstacle.x,obstacle.y)) 
+                    screen.blit(text, text_rect)
+                    obstacle.height -= 1
+
             #reset objects when the hit the bottom
-            if obstacle.y > 800:
+
+            #boulders are bigger so they reset before the other shit
+            if obstacle.width == 0 and obstacle.y > 1000:
+                obstacle.x = random.randint(100,400)
+                obstacle.y = -100
+                obstacle.height = 0
+
+            elif obstacle.y > 800:
                 
                 if obstacle.width == 100:
                     if random.randint(0,1) == 0: obstacle.x = random.randint(0,100)
@@ -311,9 +325,7 @@ while running:
                     obstacle.x = random.randint(100,300)
                     obstacle.y = -400
 
-                else:
-                    obstacle.x = random.randint(100,400)
-                    obstacle.y = -100
+
 
         for foot in feet:
             screen.blit(normal[feet.index(foot)], (foot[0]-75,foot[1]-75))
@@ -345,7 +357,9 @@ while running:
 
         #you die if you run out of health or your feet are off the screen
         if health <= 0 or (feet[0][1] > height or feet[1][1] > height): 
-            print(score)
+            print("STATS:")
+            print("  Score:",round(score/50,2))
+            print("  Jumps:", jumps)
             exit()
             
 
