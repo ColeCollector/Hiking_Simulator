@@ -35,7 +35,6 @@ log1 = pygame.image.load('images/log_1.png')
 log2 = pygame.image.load('images/log_2.png')
 
 def shadow(image):
-
     image = image.convert_alpha()
     imgwidth, imgheight = image.get_size()
     image.lock()
@@ -130,7 +129,13 @@ def circles_intersect(circle1_pos, circle1_radius, circle2_pos, circle2_radius):
         return True
     else:
         return False
-    
+
+def showtext(text,size,location,color):
+
+    a1 = pygame.font.Font(None, size).render(text, True, color)
+    a2 = a1.get_rect(center=location) 
+    screen.blit(a1, a2)
+
 while running:
     pos = pygame.mouse.get_pos()
     mouse_buttons = pygame.mouse.get_pressed()
@@ -211,11 +216,9 @@ while running:
     if menu == True:
         screen.fill("black")
 
-        text = font.render("PICK ONE", True, "white")
-        text_rect = text.get_rect(center=(width/2, height/2-190)) 
-        screen.blit(text, text_rect)
+        showtext("PICK ONE",74,(width/2, height/2-190), "white")
 
-        font = pygame.font.Font(None, 30) 
+
 
         for slot in inventory:
             #adding perks
@@ -239,16 +242,13 @@ while running:
             else:   
                 pygame.draw.rect(screen, "white", slot)
             
-            text = font.render(str(perk), True, "black")
-
-            text_rect = text.get_rect(center=(slot[0]+65,slot[1]+150)) 
+            
             pygame.draw.rect(screen, "gray", (slot[0]+3,slot[1]+127,slot[2]-6,slot[3]-130))
-            screen.blit(text, text_rect)
+            showtext(str(perk),30,(slot[0]+65,slot[1]+150), "black")
 
-        font = pygame.font.Font(None, 74) 
 
     else:
-        if boulder == False and score/50 > 2:
+        if boulder == False and score/50 > 25:
             boulder = True
             defaultbg = "#69B1EF"
             bg = defaultbg
@@ -312,9 +312,8 @@ while running:
 
                 else:
                     #printing how much time is left before boulder comes back
-                    text = font.render(str(round(obstacle.height/60)), True, "white")
-                    text_rect = text.get_rect(center=(obstacle.x,obstacle.y)) 
-                    screen.blit(text, text_rect)
+
+                    showtext(str(round(obstacle.height/60)),74,(obstacle.x,obstacle.y), "white")
                     obstacle.height -= 1
 
             #reset objects when the hit the bottom
@@ -365,9 +364,7 @@ while running:
         pygame.draw.rect(screen, "blue", (width/2-150,70,health,20))
 
         #displaying score
-        text = font.render(str(int(score/50)), True, "white")
-        text_rect = text.get_rect(center=(width/2, 35)) 
-        screen.blit(text, text_rect)
+        showtext(str(int(score/50)),74,(width/2,35), "white")
 
         #you die if you run out of health or your feet are off the screen
         if health <= 0 or (feet[0][1] > height or feet[1][1] > height): 
