@@ -1,6 +1,6 @@
 import pygame, random, math
 height = 800
-width = 500
+width = 450
 
 
 # pygame setup
@@ -31,8 +31,8 @@ for i in range(1,3):
     obstacle_y = i*600-700
     obstacles.append(pygame.Rect(obstacle_x, obstacle_y, obstacle_width, obstacle_height))
 
-log1 = pygame.image.load('log_1.png')
-log2 = pygame.image.load('log_2.png')
+log1 = pygame.image.load('images/log_1.png')
+log2 = pygame.image.load('images/log_2.png')
 
 def shadow(image):
 
@@ -54,8 +54,8 @@ def shadow(image):
 shadow1 = shadow(log1)
 shadow2 = shadow(log2)
 
-normal = [pygame.transform.flip(pygame.image.load('foot.png'), True, False),pygame.image.load('foot.png')]
-bloody = [pygame.transform.flip(pygame.image.load('bloody.png'), True, False),pygame.image.load('bloody.png')]
+normal = [pygame.transform.flip(pygame.image.load('images/foot.png'), True, False),pygame.image.load('images/foot.png')]
+#bloody = [pygame.transform.flip(pygame.image.load('images/bloody.png'), True, False),pygame.image.load('images/bloody.png')]
 
 
 walkradius = 95
@@ -70,7 +70,7 @@ inventory = []
 #footprints = []
 
 for collumn in range(2):
-    for row in range(3): inventory.append(pygame.Rect((125+(90*row), height/2-80+(90*collumn),80,80)))
+    for row in range(3): inventory.append(pygame.Rect((20+(140*row), height/2-150+(200*collumn),130,180)))
 #for row in range(2): inventory.append(pygame.Rect((170+(90*row), height/2-50,80,80)))
 
 #inventory.append(pygame.Rect((100+(110), height/2+60,100,100)))
@@ -90,7 +90,7 @@ darken = pygame.Surface((width, height), pygame.SRCALPHA)
 darken.fill((0, 0, 0, 128))   
 
 #backround audio
-pygame.mixer.music.load('ambience.wav')
+pygame.mixer.music.load('sounds/ambience.wav')
 pygame.mixer.music.play(-1)
 pygame.mixer.music.set_volume(0.05)
 
@@ -144,7 +144,7 @@ while running:
                 if not (foot[0]-pos[0])**2 + (foot[1]-pos[1])**2 < walkradius**2:
                     distances.append(math.sqrt((pos[0] - foot[0])**2 + (pos[1] - foot[1])**2))
 
-            #if the mouse is not in one of the circles
+            #if the mouse is in one of the circles
             if len(distances) == 2:
                 if distances[0] > distances[1]: 
                     pos = closest_point_on_circle(pos,feet[1],walkradius)
@@ -216,31 +216,42 @@ while running:
     if menu == True:
         screen.fill("black")
 
-        text = font.render("Pick one", True, "white")
-        text_rect = text.get_rect(center=(width/2, height/2-150)) 
+        text = font.render("PICK ONE", True, "white")
+        text_rect = text.get_rect(center=(width/2, height/2-190)) 
         screen.blit(text, text_rect)
 
+        font = pygame.font.Font(None, 30) 
+
         for slot in inventory:
+            #adding perks
+            perk = invitems[inventory.index(slot)]
+
             if slot.collidepoint(pos):
                pygame.draw.rect(screen, "gray", slot)
                if clicked == True:
                    menu = False
-                   #adding perks
-                   perk = invitems[inventory.index(slot)]
 
                    #shoes:
                    if perk in ["shoes1","shoes2"]:
                         walkradius += 10
-                        normal = [pygame.transform.flip(pygame.image.load('boot.png'), True, False),pygame.image.load('boot.png')]
+                        normal = [pygame.transform.flip(pygame.image.load('images/boot.png'), True, False),pygame.image.load('images/boot.png')]
             else:   
                 pygame.draw.rect(screen, "white", slot)
+            
+            text = font.render(str(perk), True, "black")
+
+            text_rect = text.get_rect(center=(slot[0]+65,slot[1]+150)) 
+            pygame.draw.rect(screen, "gray", (slot[0]+3,slot[1]+127,slot[2]-6,slot[3]-130))
+            screen.blit(text, text_rect)
+
+        font = pygame.font.Font(None, 74) 
 
     else:
         if boulder == False and score/50 > 2:
             boulder = True
             defaultbg = "#69B1EF"
             bg = defaultbg
-            log2 = pygame.image.load('boulder.png')
+            log2 = pygame.image.load('images/boulder.png')
             shadow2 = shadow(log2)
             obstacles = []
 
@@ -346,9 +357,9 @@ while running:
 
         pygame.draw.circle(screen,"red",pos,15)
         
-        #health bar
-        pygame.draw.rect(screen, "darkgreen", (width/2-152,68,304,24))
-        pygame.draw.rect(screen, "green", (width/2-150,70,health,20))
+        #stamina bar
+        pygame.draw.rect(screen, "darkblue", (width/2-152,68,304,24))
+        pygame.draw.rect(screen, "blue", (width/2-150,70,health,20))
 
         #displaying score
         text = font.render(str(int(score/50)), True, "white")
