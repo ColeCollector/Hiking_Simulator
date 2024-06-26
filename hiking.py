@@ -45,7 +45,7 @@ def shadow(image):
         for y in range(imgheight):
             color = image.get_at((x, y))
             if color.a != 0:
-                image.set_at((x, y), (25, 25, 25, color.a))
+                image.set_at((x, y), (40, 40, 40, color.a))
 
     # Unlock the surface
     image.unlock()
@@ -197,19 +197,13 @@ while running:
             else:
                 feet[1] = list(pos)
 
-            #old code that prioritized the closest foot to cursor when overlapping
-            """
-            elif first >= second:
-                print("first")
-                feet[1] = list(pos)
+            feetdistance = math.sqrt((feet[1][0]-feet[0][0])**2 + (feet[1][1]-feet[0][1])**2)
 
-            elif first < second:
-                print("2nd")
-                feet[0] = list(pos)
-            """
             #if feet are too far apart or left foot isnt on the left
-            if feet[0][0] > feet[1][0] or 350 < max(distances): bg = "red"
-            else: bg = defaultbg
+            if feet[0][0] > feet[1][0] or 325 < feetdistance: 
+                bg = "red"
+            else: 
+                bg = defaultbg
             locked = 3
 
     #choosing items before the game starts
