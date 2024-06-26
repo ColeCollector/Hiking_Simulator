@@ -8,7 +8,7 @@ pygame.init()
 screen = pygame.display.set_mode((width, height))
 clock = pygame.time.Clock()
 
-invitems = {"tent" : ["light tent","standard tent", "multi-person tent"],"matress":["no matress","inflatable matress","foam cushioned matress"],"sleeping bag":["light bag(10C)","3 season bag(-5C)","winter bag(-40)"], "shoes1":["crocs","hiking boots","work boots"],"shoes2":["crocs","hiking boots","work boots"], "clothes":["no spare clothes","an extra of everything","7 days of clothes"]}
+invitems = {"water" : ["plastic bottle","metal bottle", "water jug"],"matress":["no matress","inflatable matress","foam cushioned matress"],"sleeping bag":["light bag(10C)","3 season bag(-5C)","winter bag(-40)"], "shoes1":["crocs","hiking boots","work boots"],"shoes2":["crocs","hiking boots","work boots"], "clothes":["no spare clothes","an extra of everything","7 days of clothes"]}
 invitems = list(invitems.keys())
 
 # Obstacles properties
@@ -65,7 +65,7 @@ score = 0
 locked = 3
 walkradius = 80
 jumps = 0
-
+slipchance = 0
 inventory = []
 #footprints = []
 
@@ -171,7 +171,7 @@ while running:
             #this uses the width as a counter for how 
             # long the boulder will be gone
 
-            if boulder == True and random.randint(0,7) == 0:
+            if boulder == True and random.randint(0,7-slipchance) == 0:
                 randobstacle = random.randint(0,len(obstacles)-1)
                 
                 if obstacles[randobstacle].height == 0:
@@ -223,12 +223,18 @@ while running:
             if slot.collidepoint(pos):
                pygame.draw.rect(screen, "gray", slot)
                if clicked == True:
-                   menu = False
+                    menu = False
 
-                   #shoes:
-                   if perk in ["shoes1","shoes2"]:
+                    #shoes:
+                    if perk == 'shoes1':
                         walkradius += 10
                         normal = [pygame.transform.flip(pygame.image.load('images/boot.png'), True, False),pygame.image.load('images/boot.png')]
+
+                    elif perk == 'shoes2':
+                        walkradius += 15
+                        normal = [pygame.transform.flip(pygame.image.load('images/croc.png'), True, False),pygame.image.load('images/croc.png')]
+                        slipchance += 3
+
             else:   
                 pygame.draw.rect(screen, "white", slot)
             
