@@ -197,7 +197,7 @@ while running:
             else:
                 feet[1] = list(pos)
 
-            #old code that prioritized the closest foot to cursor
+            #old code that prioritized the closest foot to cursor when overlapping
             """
             elif first >= second:
                 print("first")
@@ -207,8 +207,8 @@ while running:
                 print("2nd")
                 feet[0] = list(pos)
             """
-
-            if feet[0][0] > feet[1][0]: bg = "red"
+            #if feet are too far apart or left foot isnt on the left
+            if feet[0][0] > feet[1][0] or 350 < max(distances): bg = "red"
             else: bg = defaultbg
             locked = 3
 
@@ -302,7 +302,6 @@ while running:
 
             else:
                 #checking/printing the boulders
-                
                 if obstacle.height == 0:
                     screen.blit(shadow2,(obstacle.x-125,obstacle.y+4-125))
                     screen.blit(log2,(obstacle.x-125,obstacle.y-125))
@@ -343,12 +342,15 @@ while running:
             if True not in collisions[feet.index(foot)]:
                 if clicked == True:
                     #footprints.append([bloody[feet.index(foot)], [foot[0]-75,foot[1]-75]])
-                    health -= 15
+                    health -= 10
                 else:
                     health -= 0.2
 
+        
         if bg == "red":
             health -= 0.3
+
+        #regeneration
         elif health < 300:
             health += 0.1
             

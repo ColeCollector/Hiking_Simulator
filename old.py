@@ -23,13 +23,13 @@ obstacle_x = random.randint(200,300)
 obstacle_y = random.randint(0, 500)
 obstacles.append(pygame.Rect(obstacle_x, obstacle_y, obstacle_width, obstacle_height))
 
-cloud1 = pygame.image.load('cloud_1.png')
-cloud2 = pygame.image.load('cloud_2.png')
-cloud3 = pygame.image.load('cloud_3.png')
-log1 = pygame.image.load('log_1.png')
-log2 = pygame.image.load('log_2.png')
-foot = pygame.image.load('foot.png')
-bloody = pygame.image.load('bloody.png')
+cloud1 = pygame.image.load('images/cloud_1.png')
+cloud2 = pygame.image.load('images/cloud_2.png')
+cloud3 = pygame.image.load('images/cloud_3.png')
+log1 = pygame.image.load('images/log_1.png')
+log2 = pygame.image.load('images/log_2.png')
+foot = pygame.image.load('images/foot.png')
+bloody = pygame.image.load('images/bloody.png')
 
 clouds = []
 for i in range(7):
@@ -70,7 +70,7 @@ darken = pygame.Surface((width, height), pygame.SRCALPHA)
 darken.fill((0, 0, 0, 128))   
 
 #backround audio
-pygame.mixer.music.load('ambience.wav')
+pygame.mixer.music.load('sounds/ambience.wav')
 pygame.mixer.music.play(-1)
 pygame.mixer.music.set_volume(0.05)
 
