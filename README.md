@@ -17,6 +17,27 @@ foot wetness can lead to mlre blisters and an increase in pain/discomfort
 thirst bar that can lead to dehydration. need to decontaminate water if in creek. if you do not you have a chance of getting sick
 if you get water too often you can develop dehydration because you need to wait to decontaminate.
 
+=====================
+ITEMS:
+
+tent:
+-WIP
+
+water-bottle:
+-stamina will refill faster
+-alternatively you could click something at the top to drink water and that will refil your stamina
+
+sleeping bag:
+-lets you skip night-time
+
+shoes:
+-lets you walk further
+-some shoes could make you slip easier
+-bigger jumps?
+
+clothes:
+-protection from heat
+=====================
 
 
 biomes
