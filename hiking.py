@@ -300,7 +300,8 @@ while running:
             
             pygame.draw.rect(screen, "#004400", (slot[0]+3,slot[1]+127,slot[2]-6,slot[3]-130))
             showtext(str(perk),25,(slot[0]+65,slot[1]+150), "white")
-
+        clicked = False
+        
     else:
         bg = defaultbg
         #switching biomes
