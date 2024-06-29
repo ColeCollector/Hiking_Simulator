@@ -18,6 +18,9 @@ boulder = pygame.image.load('images/boulder.png')
 boulder2 = pygame.image.load('images/boulder2.png')
 fboulder = pygame.transform.flip(boulder, True, False)
 
+backpack = pygame.image.load('images/backpack.png')
+
+
 # Obstacles properties
 obstacle_width = 100
 obstacle_height = 20
@@ -89,7 +92,7 @@ inventory = []
 #footprints = []
 
 for collumn in range(2):
-    for row in range(3): inventory.append(pygame.Rect((20+(140*row), height/2-150+(200*collumn),130,180)))
+    for row in range(3): inventory.append(pygame.Rect((20+(140*row), height/2-140+(200*collumn),130,180)))
 #for row in range(2): inventory.append(pygame.Rect((170+(90*row), height/2-50,80,80)))
 
 #inventory.append(pygame.Rect((100+(110), height/2+60,100,100)))
@@ -270,15 +273,16 @@ while running:
     #choosing items before the game starts
     if menu == True:
         ignore = True
-        screen.fill("black")
-        showtext("PICK ONE",74,(width/2, height/2-190), "white")
+        screen.fill("#001600")
+        screen.blit(backpack,(width/2-62,100))
+        showtext("PICK            ONE",74,(width/2, height/2-220), "white")
 
         for slot in inventory:
             #adding perks
             perk = invitems[inventory.index(slot)]
 
             if slot.collidepoint(pos):
-               pygame.draw.rect(screen, "gray", slot)
+               pygame.draw.rect(screen, "#008700", slot)
                if clicked == True:
                     menu = False
                     print(perk)
@@ -292,10 +296,10 @@ while running:
                         normal = [pygame.transform.flip(pygame.image.load('images/foot.png'), True, False),pygame.image.load('images/croc.png')]
                         slipchance += 3
             else:   
-                pygame.draw.rect(screen, "white", slot)
+                pygame.draw.rect(screen, "#006000", slot)
             
-            pygame.draw.rect(screen, "gray", (slot[0]+3,slot[1]+127,slot[2]-6,slot[3]-130))
-            showtext(str(perk),30,(slot[0]+65,slot[1]+150), "black")
+            pygame.draw.rect(screen, "#004400", (slot[0]+3,slot[1]+127,slot[2]-6,slot[3]-130))
+            showtext(str(perk),25,(slot[0]+65,slot[1]+150), "white")
 
     else:
         bg = defaultbg
