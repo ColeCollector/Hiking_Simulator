@@ -1,7 +1,7 @@
 import pygame, random, math
+
 height = 800
 width = 450
-
 
 # pygame setup
 pygame.init()
@@ -76,11 +76,12 @@ normal = [pygame.transform.flip(pygame.image.load('images/foot.png'), True, Fals
 #bloody = [pygame.transform.flip(pygame.image.load('images/bloody.png'), True, False),pygame.image.load('images/bloody.png')]
 
 health = 300
+heat = 150
 hoptime = 0
 score = 0
 locked = 3
 walkradius = [80,80]
-
+scale = 0
 
 jumps = 0
 slipchance = 0
@@ -97,6 +98,7 @@ running = True
 clicked = False
 menu = True
 ignore = False
+twisted = False
 biome = "log"
 boulderstart = 3
 
@@ -109,6 +111,9 @@ pygame.mixer.music.load('sounds/ambience.wav')
 pygame.mixer.music.play(-1)
 pygame.mixer.music.set_volume(0.05)
 
+sounds = [pygame.mixer.Sound('sounds/ow.wav'),pygame.mixer.Sound('sounds/jump.wav'),pygame.mixer.Sound('sounds/bone.mp3')]
+sounds[0].set_volume(0.1)
+sounds[1].set_volume(0.2)
 
 #this is so that rectangles and circles can be stored in the same list
 #(sorry for bad explanation)
@@ -181,6 +186,9 @@ def colourfade(hex_start, hex_end):
     
     return intermediate_hex
 
+def tintDamage(surface, scale):
+    a = min(255, max(0, round(255 * (1-scale))))
+    surface.fill((255, a, a), special_flags = pygame.BLEND_MIN)
 
 while running:
     pos = pygame.mouse.get_pos()
@@ -209,10 +217,6 @@ while running:
         if event.type == pygame.QUIT:
             running = False
 
-        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 3:
-            ignore = True
-            locked = 3
-
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
             ignore = False
 
@@ -221,13 +225,14 @@ while running:
             #this if statement is here because theres a weird glitch with the
             #starting inventory menu if its not there
             if ignore == False:
+                sounds[1].play()
                 hoptime = 15
                 jumps += 1
                 
                 if biome == 'boulder':
                     #fading the background
                     if defaultbg != '#69B1EF':
-                        if score/50 > boulderstart+5:
+                        if score/50 > boulderstart+8:
                             defaultbg = colourfade(defaultbg,'#69B1EF')
 
                     #randomly falling boulders
@@ -240,10 +245,10 @@ while running:
                 #distance of first foot and second foot
                 first = (feet[0][0]-pos[0])**2 + (feet[0][1]-pos[1])**2 
                 second = (feet[1][0]-pos[0])**2 + (feet[1][1]-pos[1])**2 
-
+    
                 #moving the feet to the cursor
                 if first <= walkradius[0]**2+5 and not second <= walkradius[0]**2+5: feet[0] = list(pos)
-                elif second <= walkradius[0]**2+5 and not first <= walkradius[0]**2+5: feet[1] = list(pos)
+                elif second <= walkradius[1]**2+5 and not first <= walkradius[1]**2+5: feet[1] = list(pos)
 
                 #if the feet circles are overlapping 
                 #and you click in the overlap it moves the closest foot
@@ -254,8 +259,12 @@ while running:
                 feetdistance = math.sqrt((feet[1][0]-feet[0][0])**2 + (feet[1][1]-feet[0][1])**2)
 
                 #if feet are too far apart or left foot isnt on the left
-                if feet[0][0] > feet[1][0] or 325 < feetdistance: bg = "red"
-                else: bg = defaultbg
+                if feet[0][0] > feet[1][0] or 325 < feetdistance: 
+                    twisted = True
+                    sounds[2].play()
+                    
+                else:
+                    twisted = False
                 locked = 3
 
     #choosing items before the game starts
@@ -275,11 +284,11 @@ while running:
                     print(perk)
                     #shoes:
                     if perk == 'Left Foot':
-                        walkradius[0] += 10
+                        walkradius[0] += 7
                         normal = [pygame.transform.flip(pygame.image.load('images/boot.png'), True, False),pygame.image.load('images/foot.png')]
 
                     elif perk == 'Right Foot':
-                        walkradius[1] += 15
+                        walkradius[1] += 10
                         normal = [pygame.transform.flip(pygame.image.load('images/foot.png'), True, False),pygame.image.load('images/croc.png')]
                         slipchance += 3
             else:   
@@ -289,6 +298,7 @@ while running:
             showtext(str(perk),30,(slot[0]+65,slot[1]+150), "black")
 
     else:
+        bg = defaultbg
         #switching biomes
         if biome != 'boulder' and score/50 > boulderstart:
             biome = 'boulder'
@@ -392,20 +402,36 @@ while running:
                 
         for foot in feet:
             screen.blit(normal[feet.index(foot)], (foot[0]-75,foot[1]-75))
-            if True not in collisions[feet.index(foot)]:
+            if True not in collisions[feet.index(foot)] and score!=0:
                 if clicked == True:
                     #footprints.append([bloody[feet.index(foot)], [foot[0]-75,foot[1]-75]])
                     health -= 10
                 else:
                     health -= 0.2
 
-        if bg == "red":
+                if scale == 0:
+                    scale = 100
+                    sounds[0].play()
+
+
+
+        if twisted:
+            
+            tintDamage(screen,1)
+            showtext('Twisted Ankle',90,(width/2,height/2),'white')
             health -= 0.3
 
-        #regeneration
-        elif health < 300:
+        else:
+            #regeneration
             health += 0.1
-            
+
+            if scale != 0:
+                #red screen
+                tintDamage(screen,scale/100)
+                
+                #making it fade away
+                scale -= 2
+
         for i in range(2):
             pygame.draw.circle(screen,"white",feet[i],walkradius[i]+1,1)
 
@@ -414,6 +440,10 @@ while running:
         #stamina bar
         pygame.draw.rect(screen, "darkblue", (width/2-152,68,304,24))
         pygame.draw.rect(screen, "blue", (width/2-150,70,health,20))
+
+        #heat bar
+        pygame.draw.rect(screen, "red", (width/2-152,98,304,24))
+        pygame.draw.rect(screen, "orange", (width/2-150,100,heat,20))
 
         #displaying score
         showtext(str(int(score/50)),74,(width/2,35), "white")
