@@ -76,7 +76,7 @@ shadows = {
 
 
 normal = [pygame.transform.flip(pygame.image.load('images/foot.png'), True, False),pygame.image.load('images/foot.png')]
-#bloody = [pygame.transform.flip(pygame.image.load('images/bloody.png'), True, False),pygame.image.load('images/bloody.png')]
+bloody = [pygame.transform.flip(pygame.image.load('images/bloody.png'), True, False),pygame.image.load('images/bloody.png')]
 
 health = 300
 heat = 150
@@ -103,7 +103,8 @@ menu = True
 ignore = False
 twisted = False
 biome = "log"
-boulderstart = 3
+boulderstart = 20
+snowystart = 40
 
 defaultbg = "#442323"
 bg = defaultbg
@@ -245,6 +246,11 @@ while running:
                         if obstacles[randobstacle]['biome'] == 'boulder' and obstacles[randobstacle]['timer'] == 0:
                             obstacles[randobstacle]['timer'] = 180
 
+                elif biome == 'snowy':
+                    if defaultbg != '#FFFFFF':
+                        if score/50 > snowystart+8:
+                            defaultbg = colourfade(defaultbg,'#FFFFFF')
+
                 #distance of first foot and second foot
                 first = (feet[0][0]-pos[0])**2 + (feet[0][1]-pos[1])**2 
                 second = (feet[1][0]-pos[0])**2 + (feet[1][1]-pos[1])**2 
@@ -264,6 +270,8 @@ while running:
                 #if feet are too far apart or left foot isnt on the left
                 if feet[0][0] > feet[1][0] or 325 < feetdistance: 
                     twisted = True
+                    if scale == 0:
+                        scale = 100
                     sounds[2].play()
                     
                 else:
@@ -274,6 +282,7 @@ while running:
     if menu == True:
         ignore = True
         screen.fill("#001600")
+
         screen.blit(backpack,(width/2-62,100))
         showtext("PICK            ONE",74,(width/2, height/2-220), "white")
 
@@ -282,7 +291,8 @@ while running:
             perk = invitems[inventory.index(slot)]
 
             if slot.collidepoint(pos):
-               pygame.draw.rect(screen, "#008700", slot)
+               #selected:
+               pygame.draw.rect(screen, "#004C28", slot)
                if clicked == True:
                     menu = False
                     print(perk)
@@ -296,16 +306,18 @@ while running:
                         normal = [pygame.transform.flip(pygame.image.load('images/foot.png'), True, False),pygame.image.load('images/croc.png')]
                         slipchance += 3
             else:   
-                pygame.draw.rect(screen, "#006000", slot)
-            
-            pygame.draw.rect(screen, "#004400", (slot[0]+3,slot[1]+127,slot[2]-6,slot[3]-130))
-            showtext(str(perk),25,(slot[0]+65,slot[1]+150), "white")
+                #big rect
+                pygame.draw.rect(screen, "#00331C", slot)
+
+            #small rect
+            pygame.draw.rect(screen, "#002816", (slot[0]+3,slot[1]+127,slot[2]-6,slot[3]-130))
+            showtext(str(perk).upper(),23,(slot[0]+65,slot[1]+150), "white")
         clicked = False
         
     else:
         bg = defaultbg
         #switching biomes
-        if biome != 'boulder' and score/50 > boulderstart:
+        if biome != 'boulder' and score/50 > boulderstart and biome == 'log':
             biome = 'boulder'
             #generating new obstacles
             for i in range(5):
@@ -320,6 +332,9 @@ while running:
                     "timer" : 0
                     })
 
+        elif biome != 'snowy' and score/50 > snowystart and biome == 'boulder':
+            biome = 'snowy'
+            footprints = []
 
         #Moving the obstacles when we move:
         if hoptime > 0:
@@ -332,15 +347,19 @@ while running:
             for foot in feet:
                 foot[1] += hoptime
 
-            #for footprint in footprints:
-            #    footprint[1][1]+=hoptime
+            if biome == 'snowy':
+                for footprint in footprints:
+                    footprint[1][1]+=hoptime
+
             score+=hoptime
 
         #fill the screen with a color to wipe away anything from last frame
         screen.fill(bg)
+        
+        if biome == 'snowy':
+            for footprint in footprints:
+                screen.blit(footprint[0],footprint[1])
 
-        #for footprint in footprints:
-        #    screen.blit(footprint[0],footprint[1])
 
         collisions = [[],[]]
         for obstacle in obstacles[:]:
@@ -361,10 +380,8 @@ while running:
                 collisions[0].append(rect_circle_intersect(hitbox, feet[0], walkradius[0]*0.8))
                 collisions[1].append(rect_circle_intersect(hitbox, feet[1], walkradius[1]*0.8))
 
-                
 
             else:
-                
                 #checking/printing the boulders
                 if obstacle['timer'] == 0:
                     screen.blit(shadows[obstacle['img']],(hitbox.x-hitbox.r,hitbox.y+4-hitbox.r))
@@ -382,14 +399,13 @@ while running:
 
             #boulders are bigger so they reset before the other shit
             if obstacle['biome'] == 'boulder': 
-                if biome != 'boulder':
-                    obstacles.remove(obstacle)
 
                 if obstacle['hitbox'].y > 1000:
                     obstacle['hitbox'].x = random.randint(100,400)
                     obstacle['hitbox'].y = -100
                     obstacle['timer'] = 0
-
+                    if biome != 'boulder':
+                        obstacles.remove(obstacle)
 
             elif obstacle['hitbox'].y > 800:
                 if biome != 'log':
@@ -407,35 +423,51 @@ while running:
                 
         for foot in feet:
             screen.blit(normal[feet.index(foot)], (foot[0]-75,foot[1]-75))
-            if True not in collisions[feet.index(foot)] and score!=0:
-                if clicked == True:
-                    #footprints.append([bloody[feet.index(foot)], [foot[0]-75,foot[1]-75]])
-                    health -= 10
-                else:
-                    health -= 0.2
+            if True not in collisions[feet.index(foot)] and score != 0:
+                if biome == 'snowy' and scale == 0 and len(obstacles) <= 1:
+                    footprints.append([bloody[1], [feet[1][0]-75,feet[1][1]-75]])
+                    footprints.append([bloody[0], [feet[0][0]-75,feet[0][1]-75]])
+                    scale = 200
+                    sounds[0].play()
 
-                if scale == 0:
+                elif scale == 0:
                     scale = 100
                     sounds[0].play()
 
 
 
-        if twisted:
-            
-            tintDamage(screen,1)
+        if twisted: 
+            #make the text fade away from the screen at some point future me
             showtext('Twisted Ankle',90,(width/2,height/2),'white')
             health -= 0.3
 
-        else:
+        if scale != 0:
+            #red screen
+            if biome!= 'snowy':
+                tintDamage(screen,scale/100)
+            else:
+                tintDamage(screen,scale/200)
+
+            #this is for when the player isn't stepping on an obstacle
+            if not twisted:
+                if biome == 'snowy':
+                    heat -= 0.05
+                    health -= 0.05
+
+                elif clicked == True:
+                    health -= 10
+
+                else: 
+                    health -= 0.2
+
+            #making it fade away
+            scale -= 2
+
+        elif health<300:
             #regeneration
             health += 0.1
 
-            if scale != 0:
-                #red screen
-                tintDamage(screen,scale/100)
-                
-                #making it fade away
-                scale -= 2
+
 
         for i in range(2):
             pygame.draw.circle(screen,"white",feet[i],walkradius[i]+1,1)
