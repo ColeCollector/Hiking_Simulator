@@ -21,35 +21,6 @@ fboulder = pygame.transform.flip(boulder, True, False)
 backpack = pygame.image.load('images/backpack.png')
 
 
-# Obstacles properties
-obstacle_width = 100
-obstacle_height = 20
-obstacles = []
-
-for i in range(8):
-    if random.randint(0,1) == 0: obstacle_x = random.randint(0,100)
-    else: obstacle_x = random.randint(300,400)
-        
-    obstacle_y = i*120
-    obstacles.append({
-        "hitbox" : pygame.Rect(obstacle_x, obstacle_y, obstacle_width, obstacle_height),
-        "img" : log2,
-        "biome" : "log"
-        })
-
-obstacle_height = 400
-obstacle_width = 90
-
-for i in range(1,3):
-    obstacle_x = random.randint(100,300)
-    obstacle_y = i*600-700
-    obstacles.append({
-        "hitbox" : pygame.Rect(obstacle_x, obstacle_y, obstacle_width, obstacle_height),
-        "img" : log1,
-        "biome" : "log"
-        })
-
-
 def shadow(image):
     image = image.convert_alpha()
     imgwidth, imgheight = image.get_size()
@@ -89,6 +60,7 @@ scale = 0
 jumps = 0
 slipchance = 0
 inventory = []
+obstacles = []
 #footprints = []
 
 for collumn in range(2):
@@ -102,9 +74,10 @@ clicked = False
 menu = True
 ignore = False
 twisted = False
-biome = "log"
+
 boulderstart = 20
-snowystart = 40
+snowystart = 60
+logstart = 0
 
 defaultbg = "#442323"
 bg = defaultbg
@@ -194,6 +167,61 @@ def tintDamage(surface, scale):
     a = min(255, max(0, round(255 * (1-scale))))
     surface.fill((255, a, a), special_flags = pygame.BLEND_MIN)
 
+def biomeboulder():
+    global biome, obstacles
+    biome = 'boulder'
+    #generating new obstacles
+    for i in range(5):
+        obstacle_x = random.randint(100,400)
+        obstacle_y = i*200 - 1400
+        randomchoice = random.randint(0,2)
+
+        obstacles.append({
+            "hitbox" : Hitbox(obstacle_x, obstacle_y,[112,112,90][randomchoice]),
+            "img" : [boulder,fboulder,boulder2][randomchoice],
+            "biome" : "boulder",
+            "timer" : 0
+            })
+        
+def biomesnowy():
+    global biome,footprints
+    biome = 'snowy'
+    footprints = []  
+
+def biomelog():
+    global biome,obstacles
+
+    biome = 'log'
+
+    # Obstacles properties
+    obstacle_width = 100
+    obstacle_height = 20
+
+    for i in range(8):
+        if random.randint(0,1) == 0: obstacle_x = random.randint(0,100)
+        else: obstacle_x = random.randint(300,400)
+            
+        obstacle_y = i*120
+        obstacles.append({
+            "hitbox" : pygame.Rect(obstacle_x, obstacle_y, obstacle_width, obstacle_height),
+            "img" : log2,
+            "biome" : "log"
+            })
+
+    obstacle_height = 400
+    obstacle_width = 90
+
+    for i in range(1,3):
+        obstacle_x = random.randint(100,300)
+        obstacle_y = i*600-700
+        obstacles.append({
+            "hitbox" : pygame.Rect(obstacle_x, obstacle_y, obstacle_width, obstacle_height),
+            "img" : log1,
+            "biome" : "log"
+            })
+
+biomelog()
+
 while running:
     pos = pygame.mouse.get_pos()
     mouse_buttons = pygame.mouse.get_pressed()
@@ -235,13 +263,15 @@ while running:
                 
                 if biome == 'boulder':
                     #fading the background
+
+                    
                     if defaultbg != '#69B1EF':
                         if score/50 > boulderstart+8:
                             defaultbg = colourfade(defaultbg,'#69B1EF')
 
                     #randomly falling boulders
                     if random.randint(0,7-slipchance) == 0:
-                        randobstacle = random.randint(0,len(obstacles)-1)
+                        randobstacle = random.choice([j for sublist in collisions for j, value in enumerate(sublist) if value])
                         
                         if obstacles[randobstacle]['biome'] == 'boulder' and obstacles[randobstacle]['timer'] == 0:
                             obstacles[randobstacle]['timer'] = 180
@@ -250,6 +280,11 @@ while running:
                     if defaultbg != '#FFFFFF':
                         if score/50 > snowystart+8:
                             defaultbg = colourfade(defaultbg,'#FFFFFF')
+
+                elif biome == 'log':
+                    if defaultbg != "#442323":
+                        if score/50 > logstart+8:
+                            defaultbg = colourfade(defaultbg,"#442323") 
 
                 #distance of first foot and second foot
                 first = (feet[0][0]-pos[0])**2 + (feet[0][1]-pos[1])**2 
@@ -318,23 +353,10 @@ while running:
         bg = defaultbg
         #switching biomes
         if biome != 'boulder' and score/50 > boulderstart and biome == 'log':
-            biome = 'boulder'
-            #generating new obstacles
-            for i in range(5):
-                obstacle_x = random.randint(100,400)
-                obstacle_y = i*200 - 1400
-                randomchoice = random.randint(0,2)
-
-                obstacles.append({
-                    "hitbox" : Hitbox(obstacle_x, obstacle_y,[112,112,90][randomchoice]),
-                    "img" : [boulder,fboulder,boulder2][randomchoice],
-                    "biome" : "boulder",
-                    "timer" : 0
-                    })
+            biomeboulder()
 
         elif biome != 'snowy' and score/50 > snowystart and biome == 'boulder':
-            biome = 'snowy'
-            footprints = []
+            biomesnowy()
 
         #Moving the obstacles when we move:
         if hoptime > 0:
@@ -394,7 +416,6 @@ while running:
                     #printing how much time is left before boulder comes back
                     showtext(str(round(obstacle['timer']/60)),74,(hitbox.x,hitbox.y), "white")
                     obstacle['timer'] -= 1
-
             #reset objects when the hit the bottom
 
             #boulders are bigger so they reset before the other shit
@@ -465,7 +486,7 @@ while running:
 
         elif health<300:
             #regeneration
-            health += 0.1
+            health += 0.2
 
 
 
