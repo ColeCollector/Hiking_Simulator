@@ -11,8 +11,10 @@ clock = pygame.time.Clock()
 invitems = {"Water" : ["plastic bottle","metal bottle", "water jug"],"Matress":["no matress","inflatable matress","foam cushioned matress"],"Sleeping Bag":["light bag(10C)","3 season bag(-5C)","winter bag(-40)"], "Left Foot":["crocs","hiking boots","work boots"],"Right Foot":["crocs","hiking boots","work boots"], "Clothes":["no spare clothes","an extra of everything","7 days of clothes"]}
 invitems = list(invitems.keys())
 
-log1 = pygame.image.load('images/log_1.png')
-log2 = pygame.image.load('images/log_2.png')
+log1 = pygame.image.load('images/new/log_1.png')
+log2 = pygame.image.load('images/new/log_2.png')
+rock = pygame.image.load('images/rock.png')
+grass = pygame.image.load('images/grass.png')
 
 boulder = pygame.image.load('images/boulder.png')
 boulder2 = pygame.image.load('images/boulder2.png')
@@ -20,6 +22,7 @@ fboulder = pygame.transform.flip(boulder, True, False)
 
 backpack = pygame.image.load('images/backpack.png')
 
+normal = [pygame.transform.flip(pygame.image.load('images/new/foot.png'), True, False),pygame.image.load('images/new/foot.png')]
 
 def shadow(image):
     image = image.convert_alpha()
@@ -42,14 +45,15 @@ shadows = {
     log2 : shadow(log2),
     boulder : shadow(boulder),
     fboulder : shadow(fboulder),
-    boulder2 : shadow(boulder2)
+    boulder2 : shadow(boulder2),
+    normal[0] : shadow(normal[0]),
+    normal[1] : shadow(normal[1])
     }
 
 
-normal = [pygame.transform.flip(pygame.image.load('images/foot.png'), True, False),pygame.image.load('images/foot.png')]
-bloody = [pygame.transform.flip(pygame.image.load('images/bloody.png'), True, False),pygame.image.load('images/bloody.png')]
 
-health = 300
+
+health = 30000
 heat = 150
 hoptime = 0
 score = 0
@@ -61,6 +65,8 @@ jumps = 0
 slipchance = 0
 inventory = []
 obstacles = []
+decoration = []
+
 #footprints = []
 
 for collumn in range(2):
@@ -79,7 +85,7 @@ boulderstart = 20
 snowystart = 60
 logstart = 0
 
-defaultbg = "#442323"
+defaultbg = "#A8CA59"
 bg = defaultbg
 feet = [[width/2-100,700],[width/2+100,700]]
 
@@ -220,6 +226,25 @@ def biomelog():
             "biome" : "log"
             })
 
+    for i in range(8):
+        obstacle_x = random.randint(100,300)
+            
+        obstacle_y = i*120
+        decoration.append({
+            "hitbox" : pygame.Rect(obstacle_x, obstacle_y, obstacle_width, obstacle_height),
+            "img" : rock,
+            "biome" : "log"
+            })
+        
+    for _ in range(10):
+        obstacle_x = random.randint(0,400)
+        obstacle_y = random.randint(0,800)
+        decoration.append({
+            "hitbox" : pygame.Rect(obstacle_x, obstacle_y, obstacle_width, obstacle_height),
+            "img" : grass,
+            "biome" : "log"
+            })    
+#starting with log biome
 biomelog()
 
 while running:
@@ -270,8 +295,10 @@ while running:
                             defaultbg = colourfade(defaultbg,'#69B1EF')
 
                     #randomly falling boulders
-                    if random.randint(0,7-slipchance) == 0:
-                        randobstacle = random.choice([j for sublist in collisions for j, value in enumerate(sublist) if value])
+                    if random.randint(0,15-slipchance) == 0:
+                        ontop = [j for sublist in collisions for j, value in enumerate(sublist) if value]
+                        if len(ontop) != 0:
+                            randobstacle = random.choice(ontop)
                         
                         if obstacles[randobstacle]['biome'] == 'boulder' and obstacles[randobstacle]['timer'] == 0:
                             obstacles[randobstacle]['timer'] = 180
@@ -282,9 +309,9 @@ while running:
                             defaultbg = colourfade(defaultbg,'#FFFFFF')
 
                 elif biome == 'log':
-                    if defaultbg != "#442323":
+                    if defaultbg != "#A8CA59":
                         if score/50 > logstart+8:
-                            defaultbg = colourfade(defaultbg,"#442323") 
+                            defaultbg = colourfade(defaultbg,"#A8CA59") 
 
                 #distance of first foot and second foot
                 first = (feet[0][0]-pos[0])**2 + (feet[0][1]-pos[1])**2 
@@ -366,6 +393,9 @@ while running:
             for obstacle in obstacles:
                 obstacle['hitbox'].y+=hoptime
 
+            for decor in decoration:
+                decor['hitbox'].y+=hoptime
+
             for foot in feet:
                 foot[1] += hoptime
 
@@ -381,8 +411,15 @@ while running:
         if biome == 'snowy':
             for footprint in footprints:
                 screen.blit(footprint[0],footprint[1])
+                
+        if biome == 'log':
+            for decor in decoration:
+                
+                screen.blit(decor['img'],(decor['hitbox'].x,decor['hitbox'].y))
 
-
+                if decor['hitbox'].y > 800:
+                    decor['hitbox'].y = -400
+        
         collisions = [[],[]]
         for obstacle in obstacles[:]:
             hitbox = obstacle['hitbox']
@@ -446,15 +483,14 @@ while running:
             screen.blit(normal[feet.index(foot)], (foot[0]-75,foot[1]-75))
             if True not in collisions[feet.index(foot)] and score != 0:
                 if biome == 'snowy' and scale == 0 and len(obstacles) <= 1:
-                    footprints.append([bloody[1], [feet[1][0]-75,feet[1][1]-75]])
-                    footprints.append([bloody[0], [feet[0][0]-75,feet[0][1]-75]])
+                    footprints.append([shadows[normal[1]], [feet[1][0]-75,feet[1][1]-75]])
+                    footprints.append([shadows[normal[0]], [feet[0][0]-75,feet[0][1]-75]])
                     scale = 200
                     sounds[0].play()
 
                 elif scale == 0:
                     scale = 100
                     sounds[0].play()
-
 
 
         if twisted: 
@@ -484,11 +520,9 @@ while running:
             #making it fade away
             scale -= 2
 
-        elif health<300:
+        elif health < 300:
             #regeneration
             health += 0.2
-
-
 
         for i in range(2):
             pygame.draw.circle(screen,"white",feet[i],walkradius[i]+1,1)
@@ -507,7 +541,7 @@ while running:
         showtext(str(int(score/50)),74,(width/2,35), "white")
 
         #you die if you run out of health or your feet are off the screen
-        if health <= 0 or (feet[0][1] > height or feet[1][1] > height): 
+        if health <= 0 or heat <=0 or heat >= 300 or feet[0][1] > height or feet[1][1] > height: 
             print("STATS:")
             print("  Score:",round(score/50,2))
             print("  Jumps:", jumps)
