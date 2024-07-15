@@ -29,7 +29,7 @@ cloud3 = pygame.image.load('images/cloud_3.png')
 log1 = pygame.image.load('images/log_1.png')
 log2 = pygame.image.load('images/log_2.png')
 foot = pygame.image.load('images/foot.png')
-bloody = pygame.image.load('images/bloody.png')
+#bloody = pygame.image.load('images/bloody.png')
 
 clouds = []
 for i in range(7):
@@ -205,7 +205,7 @@ while running:
             screen.blit(foot, (down_pos[0]-75,down_pos[1]-75))
             health -= 0.5
             if clicked == True:
-                footprints.append([bloody, [down_pos[0]-75,down_pos[1]-75]])
+                #footprints.append([bloody, [down_pos[0]-75,down_pos[1]-75]])
                 health -= 15
 
         #when standing on a playform

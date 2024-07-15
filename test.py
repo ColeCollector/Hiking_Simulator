@@ -1,4 +1,5 @@
-import random 
-randomchoice = random.randint(0,2)
+rgb_value = (22, 22, 22)
+number = 89
+combined_tuple = rgb_value + (number,)
 
-print([112,112,90][randomchoice])
+print((2,2,2) + (22,))

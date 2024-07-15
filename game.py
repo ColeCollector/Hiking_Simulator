@@ -1,4 +1,4 @@
-import pygame, random, playsound
+import pygame, random
 
 # Initialize Pygame
 pygame.init()
