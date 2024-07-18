@@ -28,7 +28,7 @@ boulder2 = pygame.image.load('images/boulder2.png')
 fboulder = pygame.transform.flip(boulder, True, False)
 
 backpack = pygame.image.load('images/backpack.png')
-
+perks = pygame.image.load('images/perks.png')
 normal = [pygame.transform.flip(pygame.image.load('images/new/foot.png'), True, False),pygame.image.load('images/new/foot.png')]
 
 def shadow(image,shadowc):
@@ -357,9 +357,10 @@ while running:
 
     #choosing items before the game starts
     if menu == True:
+        
         ignore = True
         screen.fill("#001600")
-
+        
         screen.blit(backpack,(30,100))
         showtext("PICK ONE TO ADD",35,(width/2+50, height/2-250), "white")
         showtext("TO YOUR BACKPACK",35,(width/2+70, height/2-220), "white")
@@ -372,15 +373,16 @@ while running:
                #selected:
 
                #colouring in the perk that is being hover over
-               pygame.draw.rect(screen, "#004C28", slot)
+               pygame.draw.rect(screen, "#007A59", slot)
+               pygame.draw.rect(screen, "#003F37", (slot[0]+4,slot[1]+4,slot[2]-8,slot[3]-60))
 
                #printing the description of the perks
                if type(stats[perk]) != list:
-                   showtext(stats[perk],16,(slot[0]+65,slot[1]+30), "white")
+                   showtext(stats[perk],15,(slot[0]+65,slot[1]+30), "white")
 
                else:
                    for x, line in enumerate(stats[perk]):
-                       showtext(line,16,(slot[0]+65,slot[1]+30+15*x), "white")
+                       showtext(line,15,(slot[0]+65,slot[1]+30+15*x), "white")
                    
                if clicked == True:
                     menu = False
@@ -412,12 +414,17 @@ while running:
                     shadows[normal[1]] = shadow(normal[1],(22,22,22))
             else:   
                 #big rect 
-                pygame.draw.rect(screen, "#00331C", slot)
+                pygame.draw.rect(screen, "#004433", slot)
+            
+                pygame.draw.rect(screen, "#002816", (slot[0]+4,slot[1]+4,slot[2]-8,slot[3]-60))
 
             #small rect
-            pygame.draw.rect(screen, "#002816", (slot[0]+3,slot[1]+127,slot[2]-6,slot[3]-130))
+            pygame.draw.rect(screen, "#002816", (slot[0]+4,slot[1]+127,slot[2]-8,slot[3]-130))
+            
             showtext(str(perk).upper(),23,(slot[0]+65,slot[1]+150), "white")
         clicked = False
+        #screen.blit(perks,(20, height/2-140))
+        
         
     else:
         bg = defaultbg
