@@ -108,7 +108,8 @@ menu = True
 ignore = False
 twisted = False
 
-
+#fuck you I did something
+print("penisssss")
 bgcolor = "#000000"
 
 feet = [[width/2-100,700],[width/2+100,700]]
