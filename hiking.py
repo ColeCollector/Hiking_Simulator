@@ -11,24 +11,30 @@ clock = pygame.time.Clock()
 invitems = {"Water" : ["plastic bottle","metal bottle", "water jug"],"Matress":["no matress","inflatable matress","foam cushioned matress"],"Sleeping Bag":["light bag(10C)","3 season bag(-5C)","winter bag(-40)"], "Left Foot":["crocs","hiking boots","work boots"],"Right Foot":["crocs","hiking boots","work boots"], "Clothes":["no spare clothes","an extra of everything","7 days of clothes"]}
 invitems = list(invitems.keys())
 
-log1 = pygame.image.load('images/new/log_1.png')
-log2 = pygame.image.load('images/new/log_2.png')
-rock = pygame.image.load('images/rock.png')
-rock1 = pygame.image.load('images/rock1.png')
-rock2 = pygame.image.load('images/rock2.png')
-stick = pygame.image.load('images/stick.png')
-fstick = pygame.transform.flip(stick, True, False)
+images = {
 
-grass = pygame.image.load('images/grass.png')
-fire = pygame.image.load('images/fire.png')
-bolt = pygame.image.load('images/bolt.png')
+'log1' : pygame.image.load('images/new/log_1.png'),
+'log2' : pygame.image.load('images/new/log_2.png'),
+'rock' : pygame.image.load('images/rock.png'),
+'rock1' : pygame.image.load('images/rock_1.png'),
+'rock2' : pygame.image.load('images/rock_2.png'),
+'stick' : pygame.image.load('images/stick.png'),
+'fstick' : pygame.transform.flip(pygame.image.load('images/stick.png'), True, False),
 
-boulder = pygame.image.load('images/boulder.png')
-boulder2 = pygame.image.load('images/boulder2.png')
-fboulder = pygame.transform.flip(boulder, True, False)
+'grass' : pygame.image.load('images/grass.png'),
+'fire' : pygame.image.load('images/fire.png'),
+'bolt' : pygame.image.load('images/bolt.png'),
 
-backpack = pygame.image.load('images/backpack.png')
-perks = pygame.image.load('images/perks.png')
+'boulder' : pygame.image.load('images/boulder.png'),
+'boulder2' : pygame.image.load('images/boulder_2.png'),
+'fboulder' : pygame.transform.flip(pygame.image.load('images/boulder.png'), True, False),
+
+'transition1' : pygame.image.load('images/transition_1.png'),
+'transition2' : pygame.image.load('images/transition_2.png'),
+'backpack' : pygame.image.load('images/backpack.png'),
+'perks' : pygame.image.load('images/perks.png')
+}
+
 normal = [pygame.transform.flip(pygame.image.load('images/new/foot.png'), True, False),pygame.image.load('images/new/foot.png')]
 
 def shadow(image,shadowc):
@@ -48,11 +54,11 @@ def shadow(image,shadowc):
     return image
 
 shadows = {
-    log1 : shadow(log1,(120, 165, 80)),
-    log2 : shadow(log2,(120, 165, 80)),
-    boulder : shadow(boulder,(76,76,76)),
-    fboulder : shadow(fboulder,(76,76,76)),
-    boulder2 : shadow(boulder2,(76,76,76))
+    images['log1'] : shadow(images['log1'],(120, 165, 80)),
+    images['log2'] : shadow(images['log2'],(120, 165, 80)),
+    images['boulder'] : shadow(images['boulder'],(76,76,76)),
+    images['fboulder'] : shadow(images['fboulder'],(76,76,76)),
+    images['boulder2'] : shadow(images['boulder2'],(76,76,76))
     }
 
 
@@ -87,7 +93,7 @@ stats = {
 }
 
 
-#footprints = []
+footprints = []
 
 for collumn in range(2):
     for row in range(3): inventory.append(pygame.Rect((20+(140*row), height/2-140+(200*collumn),130,180)))
@@ -169,23 +175,6 @@ def hex_to_rgb(hex_code):
     hex_code = hex_code.lstrip('#')
     return tuple(int(hex_code[i:i+2], 16) for i in (0, 2, 4))
 
-def colourfade(hex_start, hex_end):
-    
-    start_rgb = hex_to_rgb(hex_start)
-    end_rgb = hex_to_rgb(hex_end)
-    
-    # Calculate intermediate RGB values
-    intermediate_rgb = tuple(int(start + (end - start) * 0.05) for start, end in zip(start_rgb, end_rgb))
-    
-    # Check if intermediate color is close enough to end color
-    if all(abs(c1 - c2) <= 30 for c1, c2 in zip(intermediate_rgb, end_rgb)):
-        return hex_end
-    
-    # Convert intermediate RGB back to hex
-    intermediate_hex = '#{:02x}{:02x}{:02x}'.format(*intermediate_rgb)
-    
-    return intermediate_hex
-
 def tintDamage(surface, scale):
     a = min(255, max(0, round(255 * (1-scale))))
     surface.fill((255, a, a), special_flags = pygame.BLEND_MIN)
@@ -194,33 +183,46 @@ def biomeboulder():
     global biome, obstacles
     biome = 'boulder'
     #generating new obstacles
-    for i in range(20):
+    for i in range(26):
         obstacle_x = random.randint(100,400)
-        obstacle_y = i*50 - 1400
+        obstacle_y = i*50 - 1800
         randomchoice = random.randint(0,2)
 
         obstacles.append({
-            "hitbox" : Hitbox(obstacle_x, obstacle_y,[112,112,90][randomchoice]),
-            "img" : [boulder,fboulder,boulder2][randomchoice],
+            "hitbox" : Hitbox(obstacle_x, obstacle_y,[56,56,45][randomchoice]),
+            "img" : [images['boulder'],images['fboulder'],images['boulder2']][randomchoice],
             "biome" : "boulder",
             "timer" : 0
             })
+
+    decoration.append({
+        "hitbox" : pygame.Rect(0, -1400, 0, 0),
+        "img" : images['transition1'],  
+        "biome" : "boulder"
+        }) 
         
 def biomesnowy():
     global biome,footprints
     biome = 'snowy'
     footprints = []  
 
+    decoration.append({
+        "hitbox" : pygame.Rect(0, -1400, 0, 0),
+        "img" : images['transition2'],
+        "biome" : "snowy"
+        }) 
+    
     for _ in range(6):
         obstacle_x = random.randint(0,400)
         obstacle_y = random.randint(-20,800) - 800
         decoration.append({
             "hitbox" : pygame.Rect(obstacle_x, obstacle_y, 0, 0),
-            "img" : random.choice([rock2,rock1,stick,fstick]),
+            "img" : random.choice([images['rock2'],images['rock1'],images['stick'],images['fstick']]),
             "biome" : "snowy"
             })    
+        
 
-
+    
 def biomelog():
     global biome,obstacles
     biome = 'log'
@@ -236,7 +238,7 @@ def biomelog():
         obstacle_y = i*120
         obstacles.append({
             "hitbox" : pygame.Rect(obstacle_x, obstacle_y, obstacle_width, obstacle_height),
-            "img" : log2,
+            "img" : images['log2'],
             "biome" : "log"
             })
 
@@ -248,7 +250,7 @@ def biomelog():
         obstacle_y = i*600-700
         obstacles.append({
             "hitbox" : pygame.Rect(obstacle_x, obstacle_y, obstacle_width, obstacle_height),
-            "img" : log1,
+            "img" : images['log1'],
             "biome" : "log"
             })
 
@@ -257,13 +259,17 @@ def biomelog():
         obstacle_y = random.randint(-20,800)
         decoration.append({
             "hitbox" : pygame.Rect(obstacle_x, obstacle_y, 0, 0),
-            "img" : random.choice([grass,grass,grass,rock]),
+            "img" : random.choice([images['grass'],images['grass'],images['grass'],images['rock']]),
             "biome" : "log"
             })    
+
+
 
 #starting with log biome
 biomelog()
 biomeswitch = 10
+lastbiomeswitch = 0
+lastbiome = None
 
 while running:
     pos = pygame.mouse.get_pos()
@@ -305,11 +311,11 @@ while running:
                 jumps += 1
                 
                 #fading the background
-
+                
                 if biome == 'boulder':
-                    
-                    if defaultbg != '#A0A0A0':
-                        defaultbg = colourfade(defaultbg,'#A0A0A0')
+                    #changing the bg after the transition has past
+                    if defaultbg != '#A0A0A0' and (score/50 > lastbiomeswitch + 25):
+                       defaultbg = '#A0A0A0'
 
                     #randomly falling boulders
                     if random.randint(0,10-effects['slipchance']) == 0:
@@ -321,12 +327,15 @@ while running:
                                 obstacles[randobstacle]['timer'] = 180
 
                 elif biome == 'snowy':
-                    if defaultbg != '#FFFFFF':
-                        defaultbg = colourfade(defaultbg,'#FFFFFF')
+                    #changing the bg after the transition has past
+                    if defaultbg != '#FFFFFF' and (score/50 > lastbiomeswitch + 25):
+                        defaultbg = '#FFFFFF'
 
                 elif biome == 'log':
-                    if defaultbg != "#A8CA59":
-                        defaultbg = colourfade(defaultbg,"#A8CA59") 
+                    #changing the bg after the transition has past
+                    #if defaultbg != '#A8CA59' and (score/50 <= lastbiomeswitch + 8):
+                    #    defaultbg = '#A8CA59'
+                    pass
 
                 #distance of first foot and second foot
                 first = (feet[0][0]-pos[0])**2 + (feet[0][1]-pos[1])**2 
@@ -361,7 +370,7 @@ while running:
         ignore = True
         screen.fill("#001600")
         
-        screen.blit(backpack,(30,100))
+        screen.blit(images['backpack'],(30,100))
         showtext("PICK ONE TO ADD",35,(width/2+50, height/2-250), "white")
         showtext("TO YOUR BACKPACK",35,(width/2+70, height/2-220), "white")
 
@@ -427,11 +436,15 @@ while running:
         
         
     else:
+
         bg = defaultbg
         #switching biomes
         if score/50 > biomeswitch:
+            lastbiome = biome
             if biome == 'boulder':  biomesnowy()
             else: biomeboulder()
+            
+            lastbiomeswitch = biomeswitch
             biomeswitch += random.randint(40,60)
             
 
@@ -449,41 +462,42 @@ while running:
             for foot in feet:
                 foot[1] += hoptime
 
-            if biome == 'snowy':
-                for footprint in footprints:
-                    footprint[1][1]+=hoptime
+
+            for footprint in footprints:
+                footprint[1][1] += hoptime
 
             score+=hoptime
 
         #fill the screen with a color to wipe away anything from last frame
         screen.fill(bg)
         
-        if biome == 'snowy':
-            for footprint in footprints:
-                screen.blit(footprint[0],footprint[1])
-                
         for decor in decoration:
             screen.blit(decor['img'],(decor['hitbox'].x,decor['hitbox'].y))
             #removing decorations if they hit the bottom and it isn't their biome
             if decor['hitbox'].y > 800:
                 decor['hitbox'].y = -20
-                if biome != decor['biome']:
+                if biome != decor['biome'] or decor['img'] in [images['transition1'],images['transition2']]:
                     decoration.remove(decor)
-        
+
+
+        for footprint in footprints:
+            screen.blit(footprint[0],footprint[1])
+
+
         collisions = [[],[]]
         for obstacle in obstacles[:]:
             hitbox = obstacle['hitbox']
             if obstacle['biome'] == 'log':
 
-                if obstacle["img"] == log2:
+                if obstacle["img"] == images['log2']:
                     #checking/printing the ladder steps 
                     screen.blit(shadows[obstacle['img']],(hitbox.x,hitbox.y+6))
-                    screen.blit(log2,(hitbox.x,hitbox.y))
+                    screen.blit(images['log2'],(hitbox.x,hitbox.y))
 
-                elif obstacle["img"] == log1:
+                elif obstacle["img"] == images['log1']:
                     #checking/printing the tall logs
                     screen.blit(shadows[obstacle['img']],(hitbox.x-33,hitbox.y+6))
-                    screen.blit(log1,(hitbox.x-33,hitbox.y))
+                    screen.blit(images['log1'],(hitbox.x-33,hitbox.y))
 
                 collisions[0].append(rect_circle_intersect(hitbox, feet[0], walkradius[0]*0.8))
                 collisions[1].append(rect_circle_intersect(hitbox, feet[1], walkradius[1]*0.8))
@@ -509,7 +523,7 @@ while running:
 
                 if obstacle['hitbox'].y > 1000:
                     obstacle['hitbox'].x = random.randint(100,400)
-                    obstacle['hitbox'].y = -100
+                    obstacle['hitbox'].y = -400
                     obstacle['timer'] = 0
                     if biome != 'boulder':
                         obstacles.remove(obstacle)
@@ -518,25 +532,27 @@ while running:
                 if biome != 'log':
                     obstacles.remove(obstacle)
 
-                elif obstacle["img"] == log2:
+                elif obstacle["img"] == images['log2']:
                     if random.randint(0,1) == 0: obstacle['hitbox'].x = random.randint(0,100)
                     else: obstacle['hitbox'].x = random.randint(300,400)
                     obstacle['hitbox'].y = -400
 
-                elif obstacle["img"] == log1:
+                elif obstacle["img"] == images['log1']:
                     obstacle['hitbox'].x = random.randint(100,300)
                     obstacle['hitbox'].y = -400
                 
         for foot in feet:
             screen.blit(normal[feet.index(foot)], (foot[0]-75,foot[1]-75))
             if True not in collisions[feet.index(foot)] and score != 0:
-                if biome == 'snowy' and scale == 0 and len(obstacles) <= 1:
+                print(lastbiome,lastbiomeswitch+19,score/50)
+                if (biome == 'snowy' and scale == 0 and len(obstacles) <= 5) or (lastbiomeswitch+8 > score/50 and lastbiome == 'snowy' and scale == 0):
                     footprints.append([shadows[normal[1]], [feet[1][0]-75,feet[1][1]-75]])
                     footprints.append([shadows[normal[0]], [feet[0][0]-75,feet[0][1]-75]])
                     scale = 200
                     sounds[0].play()
 
                 elif scale == 0:
+                    #print(len(obstacles), biome, scale, bg)
                     scale = 100
                     sounds[0].play()
 
@@ -580,15 +596,17 @@ while running:
         #stamina bar
         pygame.draw.rect(screen, "darkblue", (width/2-152,68,304,24))
         pygame.draw.rect(screen, "blue", (width/2-150,70,stamina,20))
-        screen.blit(bolt, (width/2-170,58))
+        screen.blit(images['bolt'], (width/2-170,58))
 
         #heat bar
         pygame.draw.rect(screen, "red", (width/2-152,100,304,24))
         pygame.draw.rect(screen, "orange", (width/2-150,102,heat,20))
-        screen.blit(fire, (width/2+130,90))
+        screen.blit(images['fire'], (width/2+130,90))
 
         #displaying score
         showtext(str(int(score/50)),74,(width/2,35), "white")
+
+        showtext(str(biome),40,(width-30,height-30), "black")
 
         #you die if you run out of stamina or your feet are off the screen
         if stamina <= 0 or heat <=0 or heat >= 300 or feet[0][1] > height or feet[1][1] > height: 
