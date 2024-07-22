@@ -31,6 +31,7 @@ images = {
 
 'transition1' : pygame.image.load('images/transition_1.png'),
 'transition2' : pygame.image.load('images/transition_2.png'),
+'transition3' : pygame.image.load('images/transition_3.png'),
 'backpack' : pygame.image.load('images/backpack.png'),
 'perks' : pygame.image.load('images/perks.png')
 }
@@ -80,7 +81,7 @@ effects = {
 }
 
 inventory = []
-obstacles = []
+platforms = []
 decoration = []
 
 stats = {
@@ -108,8 +109,8 @@ ignore = False
 twisted = False
 
 
-defaultbg = "#A8CA59"
-bg = defaultbg
+bgcolor = "#000000"
+
 feet = [[width/2-100,700],[width/2+100,700]]
 
 #backround audio
@@ -180,16 +181,17 @@ def tintDamage(surface, scale):
     surface.fill((255, a, a), special_flags = pygame.BLEND_MIN)
 
 def biomeboulder():
-    global biome, obstacles
+    print("boulder")
+    global biome, platforms
     biome = 'boulder'
-    #generating new obstacles
+    #generating new platforms
     for i in range(26):
-        obstacle_x = random.randint(100,400)
-        obstacle_y = i*50 - 1800
+        platform_x = random.randint(100,400)
+        platform_y = i*50 - 1800
         randomchoice = random.randint(0,2)
 
-        obstacles.append({
-            "hitbox" : Hitbox(obstacle_x, obstacle_y,[56,56,45][randomchoice]),
+        platforms.append({
+            "hitbox" : Hitbox(platform_x, platform_y,[56,56,45][randomchoice]),
             "img" : [images['boulder'],images['fboulder'],images['boulder2']][randomchoice],
             "biome" : "boulder",
             "timer" : 0
@@ -202,6 +204,7 @@ def biomeboulder():
         }) 
         
 def biomesnowy():
+    print("snowy")
     global biome,footprints
     biome = 'snowy'
     footprints = []  
@@ -213,10 +216,10 @@ def biomesnowy():
         }) 
     
     for _ in range(6):
-        obstacle_x = random.randint(0,400)
-        obstacle_y = random.randint(-20,800) - 800
+        platform_x = random.randint(0,400)
+        platform_y = random.randint(-20,800) - 800
         decoration.append({
-            "hitbox" : pygame.Rect(obstacle_x, obstacle_y, 0, 0),
+            "hitbox" : pygame.Rect(platform_x, platform_y, 0, 0),
             "img" : random.choice([images['rock2'],images['rock1'],images['stick'],images['fstick']]),
             "biome" : "snowy"
             })    
@@ -224,41 +227,48 @@ def biomesnowy():
 
     
 def biomelog():
-    global biome,obstacles
+    print("log")
+    global biome,platforms
     biome = 'log'
-
-    # Obstacles properties
-    obstacle_width = 100
-    obstacle_height = 20
+    #-500
+    # platforms properties
+    platform_width = 100
+    platform_height = 20
 
     for i in range(8):
-        if random.randint(0,1) == 0: obstacle_x = random.randint(0,100)
-        else: obstacle_x = random.randint(300,400)
+        if random.randint(0,1) == 0: platform_x = random.randint(0,100)
+        else: platform_x = random.randint(300,400)
             
-        obstacle_y = i*120
-        obstacles.append({
-            "hitbox" : pygame.Rect(obstacle_x, obstacle_y, obstacle_width, obstacle_height),
+        platform_y = i*120-1400
+        platforms.append({
+            "hitbox" : pygame.Rect(platform_x, platform_y, platform_width, platform_height),
             "img" : images['log2'],
             "biome" : "log"
             })
 
-    obstacle_height = 400
-    obstacle_width = 90
+    platform_height = 400
+    platform_width = 90
 
     for i in range(1,3):
-        obstacle_x = random.randint(100,300)
-        obstacle_y = i*600-700
-        obstacles.append({
-            "hitbox" : pygame.Rect(obstacle_x, obstacle_y, obstacle_width, obstacle_height),
+        platform_x = random.randint(100,300)
+        platform_y = i*600-2100
+        platforms.append({
+            "hitbox" : pygame.Rect(platform_x, platform_y, platform_width, platform_height),
             "img" : images['log1'],
             "biome" : "log"
             })
-
+        
+    decoration.append({
+        "hitbox" : pygame.Rect(0, -1400, 0, 0),
+        "img" : images['transition3'],
+        "biome" : "log"
+        }) 
+    
     for _ in range(20):
-        obstacle_x = random.randint(0,400)
-        obstacle_y = random.randint(-20,800)
+        platform_x = random.randint(0,400)
+        platform_y = random.randint(-1320,-500)
         decoration.append({
-            "hitbox" : pygame.Rect(obstacle_x, obstacle_y, 0, 0),
+            "hitbox" : pygame.Rect(platform_x, platform_y, 0, 0),
             "img" : random.choice([images['grass'],images['grass'],images['grass'],images['rock']]),
             "biome" : "log"
             })    
@@ -267,7 +277,7 @@ def biomelog():
 
 #starting with log biome
 biomelog()
-biomeswitch = 10
+biomeswitch = random.randint(40,60)
 lastbiomeswitch = 0
 lastbiome = None
 
@@ -314,28 +324,28 @@ while running:
                 
                 if biome == 'boulder':
                     #changing the bg after the transition has past
-                    if defaultbg != '#A0A0A0' and (score/50 > lastbiomeswitch + 25):
-                       defaultbg = '#A0A0A0'
+                    if bgcolor != '#A0A0A0' and (score/50 > lastbiomeswitch + 25):
+                       bgcolor = '#A0A0A0'
 
                     #randomly falling boulders
-                    if random.randint(0,10-effects['slipchance']) == 0:
+                    if random.randint(0,5-effects['slipchance']) == 0:
                         ontop = [j for sublist in collisions for j, value in enumerate(sublist) if value]
                         if len(ontop) != 0:
-                            randobstacle = random.choice(ontop)
+                            randplatform = random.choice(ontop)
                         
-                            if obstacles[randobstacle]['biome'] == 'boulder' and obstacles[randobstacle]['timer'] == 0:
-                                obstacles[randobstacle]['timer'] = 180
+                            if platforms[randplatform]['biome'] == 'boulder' and platforms[randplatform]['timer'] == 0:
+                                platforms[randplatform]['timer'] = 180
 
                 elif biome == 'snowy':
                     #changing the bg after the transition has past
-                    if defaultbg != '#FFFFFF' and (score/50 > lastbiomeswitch + 25):
-                        defaultbg = '#FFFFFF'
+                    if bgcolor != '#FFFFFF' and (score/50 > lastbiomeswitch + 25):
+                        bgcolor = '#FFFFFF'
 
                 elif biome == 'log':
                     #changing the bg after the transition has past
-                    #if defaultbg != '#A8CA59' and (score/50 <= lastbiomeswitch + 8):
-                    #    defaultbg = '#A8CA59'
-                    pass
+                    if bgcolor != '#A8CA59' and (score/50 > lastbiomeswitch + 25):
+                        bgcolor = '#A8CA59'
+
 
                 #distance of first foot and second foot
                 first = (feet[0][0]-pos[0])**2 + (feet[0][1]-pos[1])**2 
@@ -387,11 +397,13 @@ while running:
 
                #printing the description of the perks
                if type(stats[perk]) != list:
-                   showtext(stats[perk],15,(slot[0]+65,slot[1]+30), "white")
+                   pass
+                   #showtext(stats[perk],15,(slot[0]+65,slot[1]+100), "white")
 
                else:
                    for x, line in enumerate(stats[perk]):
-                       showtext(line,15,(slot[0]+65,slot[1]+30+15*x), "white")
+                       pass
+                       #showtext(line,15,(slot[0]+65,slot[1]+80+15*x), "white")
                    
                if clicked == True:
                     menu = False
@@ -404,7 +416,7 @@ while running:
                     elif perk == 'Right Foot':
                         walkradius[1] += 8
                         normal[1] = pygame.image.load('images/croc.png')
-                        effects['slipchance'] += 3
+                        effects['slipchance'] += 1
 
                     elif perk == 'Water':
                         effects['stamina'] -= 0.02
@@ -432,29 +444,37 @@ while running:
             
             showtext(str(perk).upper(),23,(slot[0]+65,slot[1]+150), "white")
         clicked = False
-        #screen.blit(perks,(20, height/2-140))
-        
-        
+        screen.blit(images['perks'],(20, height/2-140))
+   
     else:
-
-        bg = defaultbg
         #switching biomes
         if score/50 > biomeswitch:
             lastbiome = biome
-            if biome == 'boulder':  biomesnowy()
-            else: biomeboulder()
+            print(biome)
+
+            #chooses a random biome
+            if biome == 'log':
+                randombiome = random.choice([biomeboulder,biomesnowy])
+
+            elif biome == 'boulder':
+                randombiome = random.choice([biomelog,biomesnowy])
+
+            else:
+                randombiome = random.choice([biomeboulder,biomelog])
+
+            randombiome()
             
             lastbiomeswitch = biomeswitch
             biomeswitch += random.randint(40,60)
             
 
-        #Moving the obstacles when we move:
+        #Moving the platforms when we move:
         if hoptime > 0:
             hoptime -= hoptime/3
             if hoptime < 0.1:hoptime = 0
 
-            for obstacle in obstacles:
-                obstacle['hitbox'].y+=hoptime
+            for platform in platforms:
+                platform['hitbox'].y+=hoptime
 
             for decor in decoration:
                 decor['hitbox'].y+=hoptime
@@ -469,11 +489,12 @@ while running:
             score+=hoptime
 
         #fill the screen with a color to wipe away anything from last frame
-        screen.fill(bg)
+        screen.fill(bgcolor)
         
         for decor in decoration:
             screen.blit(decor['img'],(decor['hitbox'].x,decor['hitbox'].y))
             #removing decorations if they hit the bottom and it isn't their biome
+            
             if decor['hitbox'].y > 800:
                 decor['hitbox'].y = -20
                 if biome != decor['biome'] or decor['img'] in [images['transition1'],images['transition2']]:
@@ -485,18 +506,18 @@ while running:
 
 
         collisions = [[],[]]
-        for obstacle in obstacles[:]:
-            hitbox = obstacle['hitbox']
-            if obstacle['biome'] == 'log':
+        for platform in platforms[:]:
+            hitbox = platform['hitbox']
+            if platform['biome'] == 'log':
 
-                if obstacle["img"] == images['log2']:
+                if platform["img"] == images['log2']:
                     #checking/printing the ladder steps 
-                    screen.blit(shadows[obstacle['img']],(hitbox.x,hitbox.y+6))
+                    screen.blit(shadows[platform['img']],(hitbox.x,hitbox.y+6))
                     screen.blit(images['log2'],(hitbox.x,hitbox.y))
 
-                elif obstacle["img"] == images['log1']:
+                elif platform["img"] == images['log1']:
                     #checking/printing the tall logs
-                    screen.blit(shadows[obstacle['img']],(hitbox.x-33,hitbox.y+6))
+                    screen.blit(shadows[platform['img']],(hitbox.x-33,hitbox.y+6))
                     screen.blit(images['log1'],(hitbox.x-33,hitbox.y))
 
                 collisions[0].append(rect_circle_intersect(hitbox, feet[0], walkradius[0]*0.8))
@@ -505,71 +526,75 @@ while running:
 
             else:
                 #checking/printing the boulders
-                if obstacle['timer'] == 0:
-                    screen.blit(shadows[obstacle['img']],(hitbox.x-hitbox.r,hitbox.y+4-hitbox.r))
-                    screen.blit(obstacle['img'],(hitbox.x-hitbox.r,hitbox.y-hitbox.r))
+                if platform['timer'] == 0:
+                    platform['img'].set_alpha(256)
+                    screen.blit(shadows[platform['img']],(hitbox.x-hitbox.r,hitbox.y+4-hitbox.r))
+                    screen.blit(platform['img'],(hitbox.x-hitbox.r,hitbox.y-hitbox.r))
                     #pygame.draw.circle(screen,"green",[hitbox.x,hitbox.y],hitbox.r)
                     collisions[0].append(circles_intersect(feet[0], walkradius[0]*0.8,[hitbox.x,hitbox.y],hitbox.r))
                     collisions[1].append(circles_intersect(feet[1], walkradius[1]*0.8,[hitbox.x,hitbox.y],hitbox.r))
 
                 else:
                     #printing how much time is left before boulder comes back
-                    showtext(str(round(obstacle['timer']/60)),74,(hitbox.x,hitbox.y), "white")
-                    obstacle['timer'] -= 1
+                    platform['img'].set_alpha(platform['timer'])
+                    screen.blit(platform['img'],(hitbox.x-hitbox.r,hitbox.y-hitbox.r))
+
+                    #showtext(str(round(platform['timer']/60)),74,(hitbox.x,hitbox.y), "white")
+                    platform['timer'] -= 1
             #reset objects when the hit the bottom
 
             #boulders are bigger so they reset before the other shit
-            if obstacle['biome'] == 'boulder': 
+            if platform['biome'] == 'boulder': 
 
-                if obstacle['hitbox'].y > 1000:
-                    obstacle['hitbox'].x = random.randint(100,400)
-                    obstacle['hitbox'].y = -400
-                    obstacle['timer'] = 0
+                if platform['hitbox'].y > 1000:
+                    platform['hitbox'].x = random.randint(100,400)
+                    platform['hitbox'].y = -400
+                    platform['timer'] = 0
                     if biome != 'boulder':
-                        obstacles.remove(obstacle)
+                        platforms.remove(platform)
 
-            elif obstacle['hitbox'].y > 800:
+            elif platform['hitbox'].y > 800:
                 if biome != 'log':
-                    obstacles.remove(obstacle)
+                    platforms.remove(platform)
 
-                elif obstacle["img"] == images['log2']:
-                    if random.randint(0,1) == 0: obstacle['hitbox'].x = random.randint(0,100)
-                    else: obstacle['hitbox'].x = random.randint(300,400)
-                    obstacle['hitbox'].y = -400
+                elif platform["img"] == images['log2']:
+                    if random.randint(0,1) == 0: platform['hitbox'].x = random.randint(0,100)
+                    else: platform['hitbox'].x = random.randint(300,400)
+                    platform['hitbox'].y = -400
 
-                elif obstacle["img"] == images['log1']:
-                    obstacle['hitbox'].x = random.randint(100,300)
-                    obstacle['hitbox'].y = -400
+                elif platform["img"] == images['log1']:
+                    platform['hitbox'].x = random.randint(100,300)
+                    platform['hitbox'].y = -400
                 
         for foot in feet:
             screen.blit(normal[feet.index(foot)], (foot[0]-75,foot[1]-75))
             if True not in collisions[feet.index(foot)] and score != 0:
-                print(lastbiome,lastbiomeswitch+19,score/50)
-                if (biome == 'snowy' and scale == 0 and len(obstacles) <= 5) or (lastbiomeswitch+8 > score/50 and lastbiome == 'snowy' and scale == 0):
+                #adds footprints and a longer delay for being hurt for falling if we are in the snowy biome
+                if (biome == 'snowy' and scale == 0 and len(platforms) <= 5) or (lastbiomeswitch+20 > score/50 and lastbiome == 'snowy' and scale == 0):
                     footprints.append([shadows[normal[1]], [feet[1][0]-75,feet[1][1]-75]])
                     footprints.append([shadows[normal[0]], [feet[0][0]-75,feet[0][1]-75]])
                     scale = 200
                     sounds[0].play()
 
                 elif scale == 0:
-                    #print(len(obstacles), biome, scale, bg)
+                    #print(len(platforms), biome, scale, bg)
                     scale = 100
                     sounds[0].play()
 
-        if twisted: 
-            #make the text fade away from the screen at some point future me
-            if scale!=0:
-                showtext('Twisted Ankle',90,(width/2+5,height/2+5),'black')
-                showtext('Twisted Ankle',90,(width/2,height/2),'white')
+        #if twisted: 
+        #    #make the text fade away from the screen at some point future me
+        #    if scale!=0:
+        #       showtext('Twisted Ankle',90,(width/2+5,height/2+5),'black')
+        #        showtext('Twisted Ankle',90,(width/2,height/2),'white')
 
         if scale != 0:
             #red screen
-            if biome == 'snowy' and len(obstacles) <= 1:
+            if (biome == 'snowy' and len(platforms) <= 5) or (lastbiomeswitch+20 > score/50 and lastbiome == 'snowy'):
                 tintDamage(screen,scale/200)
             else:
                 tintDamage(screen,scale/100)
 
-            #this is for when the player isn't stepping on an obstacle
+            #this is for when the player isn't stepping on an platform
 
             if biome == 'snowy':
                 heat -= effects['heat']
