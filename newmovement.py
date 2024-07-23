@@ -1,4 +1,4 @@
-import pygame,random,math,numpy as np
+import pygame,random,math
 
 height = 800
 width = 500

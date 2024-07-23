@@ -8,11 +8,10 @@ pygame.init()
 screen = pygame.display.set_mode((width, height))
 clock = pygame.time.Clock()
 
-invitems = {"Water" : ["plastic bottle","metal bottle", "water jug"],"Matress":["no matress","inflatable matress","foam cushioned matress"],"Sleeping Bag":["light bag(10C)","3 season bag(-5C)","winter bag(-40)"], "Left Foot":["crocs","hiking boots","work boots"],"Right Foot":["crocs","hiking boots","work boots"], "Clothes":["no spare clothes","an extra of everything","7 days of clothes"]}
+invitems = {"Water" : ["plastic bottle","metal bottle", "water jug"],"Sleeping Bag":["light bag(10C)","3 season bag(-5C)","winter bag(-40)"], "Left Foot":["crocs","hiking boots","work boots"],"Right Foot":["crocs","hiking boots","work boots"],"Locked_1" : None,"Locked_2" : None, "Clothes":["no spare clothes","an extra of everything","7 days of clothes"]}
 invitems = list(invitems.keys())
 
 images = {
-
 'log1' : pygame.image.load('images/new/log_1.png'),
 'log2' : pygame.image.load('images/new/log_2.png'),
 'rock' : pygame.image.load('images/rock.png'),
@@ -33,7 +32,7 @@ images = {
 'transition2' : pygame.image.load('images/transition_2.png'),
 'transition3' : pygame.image.load('images/transition_3.png'),
 'backpack' : pygame.image.load('images/backpack.png'),
-'perks' : pygame.image.load('images/perks.png')
+'perks' : pygame.image.load('images/new/perks.png')
 }
 
 normal = [pygame.transform.flip(pygame.image.load('images/new/foot.png'), True, False),pygame.image.load('images/new/foot.png')]
@@ -63,9 +62,7 @@ shadows = {
     }
 
 
-
-
-stamina = 3000
+stamina = 600
 heat = 150
 hoptime = 0
 score = 0
@@ -77,10 +74,9 @@ jumps = 0
 effects = {
     'slipchance' : 0,
     'heat'       : 0.05,
-    'stamina'    : 0.2
+    'stamina'    : 0.05
 }
 
-inventory = []
 platforms = []
 decoration = []
 
@@ -96,21 +92,16 @@ stats = {
 
 footprints = []
 
-for collumn in range(2):
-    for row in range(3): inventory.append(pygame.Rect((20+(140*row), height/2-140+(200*collumn),130,180)))
-#for row in range(2): inventory.append(pygame.Rect((170+(90*row), height/2-50,80,80)))
-
-#inventory.append(pygame.Rect((100+(110), height/2+60,100,100)))
-
 running = True
 clicked = False
 menu = True
 ignore = False
 twisted = False
 
+
 #fuck you I did something
 print("penisssss")
-bgcolor = "#000000"
+bgcolor = "#FFFFFF"
 
 feet = [[width/2-100,700],[width/2+100,700]]
 
@@ -131,6 +122,7 @@ class Hitbox:
         self.y = y
         self.r = r
 
+# Function to check if rectangles are intersecting with circles
 def rect_circle_intersect(rect, circle_center, circle_radius):
     #Check if any corner of the rectangle is inside the circle
     corners = [
@@ -150,6 +142,7 @@ def rect_circle_intersect(rect, circle_center, circle_radius):
     distance_y = circle_center[1] - closest_y
     return distance_x ** 2 + distance_y ** 2 <= circle_radius ** 2
 
+# Function to check for the closest point to a point on a circle
 def closest_point_on_circle(pos, locked):
     distance = math.sqrt((pos[0] - feet[locked][0])**2 + (pos[1] - feet[locked][1])**2)
     closest_x = feet[locked][0] + walkradius[locked] * (pos[0] - feet[locked][0]) / distance
@@ -157,6 +150,7 @@ def closest_point_on_circle(pos, locked):
 
     return [closest_x, closest_y]
 
+# Function to check for circles intersecting with each other
 def circles_intersect(circle1_pos, circle1_radius, circle2_pos, circle2_radius):
     # Calculate the distance between the centers of the circles
     distance = math.sqrt((circle1_pos[0] - circle2_pos[0])**2 + (circle1_pos[1] - circle2_pos[1])**2)
@@ -167,22 +161,25 @@ def circles_intersect(circle1_pos, circle1_radius, circle2_pos, circle2_radius):
     else:
         return False
 
-def showtext(text,size,location,color):
+# Function to display text on the screen
+def show_text(text,size,location,color):
     a1 = pygame.font.Font(None, size).render(text, True, color)
     a2 = a1.get_rect(center=location) 
     screen.blit(a1, a2)
 
+# Function to convert from hex color to rgb color
 def hex_to_rgb(hex_code):
     """ Convert hex color code to RGB tuple. """
     hex_code = hex_code.lstrip('#')
     return tuple(int(hex_code[i:i+2], 16) for i in (0, 2, 4))
 
-def tintDamage(surface, scale):
+# Function to make the screen red 
+def damage_tint(surface, scale):
     a = min(255, max(0, round(255 * (1-scale))))
     surface.fill((255, a, a), special_flags = pygame.BLEND_MIN)
 
+# Function to switch to boulder biome  
 def biomeboulder():
-    print("boulder")
     global biome, platforms
     biome = 'boulder'
     #generating new platforms
@@ -203,9 +200,9 @@ def biomeboulder():
         "img" : images['transition1'],  
         "biome" : "boulder"
         }) 
-        
+
+# Function to switch to snowy biome  
 def biomesnowy():
-    print("snowy")
     global biome,footprints
     biome = 'snowy'
     footprints = []  
@@ -224,11 +221,9 @@ def biomesnowy():
             "img" : random.choice([images['rock2'],images['rock1'],images['stick'],images['fstick']]),
             "biome" : "snowy"
             })    
-        
 
-    
+# Function to switch to log biome    
 def biomelog():
-    print("log")
     global biome,platforms
     biome = 'log'
     #-500
@@ -274,9 +269,146 @@ def biomelog():
             "biome" : "log"
             })    
 
+# Function to calculate the vertices of a hexagon
+def calculate_hexagon_vertices(center, size):
+    return [
+        (center[0] + size * math.cos(math.radians(60 * i)), 
+         center[1] + size * math.sin(math.radians(60 * i)))
+        for i in range(6)
+    ]
+
+# Function to check if a point is inside a polygon
+def point_in_polygon(point, vertices):
+    x, y = point
+    n = len(vertices)
+    inside = False
+    p1x, p1y = vertices[0]
+    for i in range(n + 1):
+        p2x, p2y = vertices[i % n]
+        if y > min(p1y, p2y):
+            if y <= max(p1y, p2y):
+                if x <= max(p1x, p2x):
+                    if p1y != p2y:
+                        xinters = (y - p1y) * (p2x - p1x) / (p2y - p1y) + p1x
+                    if p1x == p2x or x <= xinters:
+                        inside = not inside
+        p1x, p1y = p2x, p2y
+    return inside
+
+# Define colors
+bg_color = '#0B1911'
+hexagon_default_color = '#304D30'
+hexagon_hover_color = '#387738'
+hexagon_selected_color = '#EEF0E5'
+hexagon_outline_color = '#163020'
+
+# Hexagon properties
+hexagons = []
+selected = []
+
+for i in range(2):
+    vertices = calculate_hexagon_vertices((i*180+135,347+40),60)
+    hexagons.append(vertices)
+
+for i in range(2):
+    vertices = calculate_hexagon_vertices((i*180+135,450+40),60)
+    hexagons.append(vertices)
+
+for i in range(3):
+    vertices = calculate_hexagon_vertices((225,296+103*i+40),60)
+    hexagons.append(vertices)
 
 
-#starting with log biome
+def menu_start():
+    global menu
+    screen.fill(bg_color)
+    
+    #screen.blit(images['backpack'],(30,100))
+    show_text("PICK TWO",60,(width/2, height/2-250), "white")
+    show_text("ITEMS",60,(width/2, height/2-200), "white")
+
+    for hexagon in hexagons:
+        if hexagons.index(hexagon) in selected:
+            color = hexagon_selected_color
+            if clicked == True and point_in_polygon(pos, hexagon):
+                selected.remove(hexagons.index(hexagon))
+            
+        elif point_in_polygon(pos, hexagon):
+            if clicked == True and len(selected) < 2:
+                selected.append(hexagons.index(hexagon))
+            color = hexagon_hover_color
+
+        else: color = hexagon_default_color 
+
+        # Displaying Hexagons
+        pygame.draw.polygon(screen, color, hexagon, 0)
+        pygame.draw.polygon(screen, hexagon_outline_color, hexagon, 8)
+    
+    
+    if  pygame.Rect(width/2-100,650,200,50).collidepoint(pos):
+        pygame.draw.rect(screen, hexagon_hover_color, (width/2-100,650,200,50))
+        if clicked == True and len(selected) == 2:
+            menu = False
+            # Finding which perk based on which hexagon was selected
+            perks = invitems[selected[0]],invitems[selected[1]]
+
+            # Applying the perks
+            for perk in perks:
+                if perk == 'Left Foot':
+                    walkradius[0] += 5
+                    normal[0] = pygame.transform.flip(pygame.image.load('images/boot.png'), True, False)
+
+                elif perk == 'Right Foot':
+                    walkradius[1] += 8
+                    normal[1] = pygame.image.load('images/croc.png')
+                    effects['slipchance'] += 1
+
+                elif perk == 'Water':
+                    effects['stamina'] -= 0.01
+
+                elif perk == 'Clothes':
+                    effects['heat'] -= 0.02
+
+                elif perk == 'Sleeping Bag':
+                    pass
+
+            shadows[normal[0]] = shadow(normal[0],(22,22,22))
+            shadows[normal[1]] = shadow(normal[1],(22,22,22))
+        
+    else:
+        pygame.draw.rect(screen, hexagon_default_color, (width/2-100,650,200,50))
+    show_text('DONE',50,(width/2,675),'white')
+
+    screen.blit(images['perks'],(0, -20))
+
+def bg_color_switch():
+    global bgcolor, platforms
+
+    if biome == 'boulder':
+        #changing the bg after the transition has past
+        if bgcolor != '#A0A0A0' and (score/50 > lastbiomeswitch + 25):
+            bgcolor = '#A0A0A0'
+
+        #randomly falling boulders
+        if random.randint(0,5-effects['slipchance']) == 0:
+            ontop = [j for sublist in collisions for j, value in enumerate(sublist) if value]
+            if len(ontop) != 0:
+                randplatform = random.choice(ontop)
+            
+                if platforms[randplatform]['biome'] == 'boulder' and platforms[randplatform]['timer'] == 0:
+                    platforms[randplatform]['timer'] = 180
+
+    elif biome == 'snowy':
+        #changing the bg after the transition has past
+        if bgcolor != '#FFFFFF' and (score/50 > lastbiomeswitch + 25):
+            bgcolor = '#FFFFFF'
+
+    elif biome == 'log':
+        #changing the bg after the transition has past
+        if bgcolor != '#A8CA59' and (score/50 > lastbiomeswitch + 25):
+            bgcolor = '#A8CA59'
+
+# Starting with log biome
 biomelog()
 biomeswitch = random.randint(40,60)
 lastbiomeswitch = 0
@@ -286,7 +418,8 @@ while running:
     pos = pygame.mouse.get_pos()
     mouse_buttons = pygame.mouse.get_pressed()
 
-    if mouse_buttons[0] and ignore == False:
+    # Check if we are in the menu
+    if mouse_buttons[0] and menu == False:
 
         if locked != 3:
             pos = closest_point_on_circle(pos,locked)
@@ -309,151 +442,63 @@ while running:
         if event.type == pygame.QUIT:
             running = False
 
-        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-            ignore = False
-
         if event.type == pygame.MOUSEBUTTONUP and event.button == 1 :
             clicked = True
-            #this if statement is here because theres a weird glitch with the
-            #starting inventory menu if its not there
-            if ignore == False:
+
+            # Check if we are in the menu
+            if menu == False:
                 sounds[1].play()
+                # Moving faster if at least one foot is high up
                 hoptime = (780-max(feet[0][1],feet[1][1]))/15+7
                 jumps += 1
                 
-                #fading the background
+                # Switching the bg color
+                bg_color_switch()
                 
-                if biome == 'boulder':
-                    #changing the bg after the transition has past
-                    if bgcolor != '#A0A0A0' and (score/50 > lastbiomeswitch + 25):
-                       bgcolor = '#A0A0A0'
-
-                    #randomly falling boulders
-                    if random.randint(0,5-effects['slipchance']) == 0:
-                        ontop = [j for sublist in collisions for j, value in enumerate(sublist) if value]
-                        if len(ontop) != 0:
-                            randplatform = random.choice(ontop)
-                        
-                            if platforms[randplatform]['biome'] == 'boulder' and platforms[randplatform]['timer'] == 0:
-                                platforms[randplatform]['timer'] = 180
-
-                elif biome == 'snowy':
-                    #changing the bg after the transition has past
-                    if bgcolor != '#FFFFFF' and (score/50 > lastbiomeswitch + 25):
-                        bgcolor = '#FFFFFF'
-
-                elif biome == 'log':
-                    #changing the bg after the transition has past
-                    if bgcolor != '#A8CA59' and (score/50 > lastbiomeswitch + 25):
-                        bgcolor = '#A8CA59'
-
-
-                #distance of first foot and second foot
+                # Distance of first foot and second foot
                 first = (feet[0][0]-pos[0])**2 + (feet[0][1]-pos[1])**2 
                 second = (feet[1][0]-pos[0])**2 + (feet[1][1]-pos[1])**2 
     
-                #moving the feet to the cursor
+                # Moving the feet to the cursor
                 if first <= walkradius[0]**2+5 and not second <= walkradius[0]**2+5: feet[0] = list(pos)
                 elif second <= walkradius[1]**2+5 and not first <= walkradius[1]**2+5: feet[1] = list(pos)
 
-                #if the feet circles are overlapping 
-                #and you click in the overlap it moves the closest foot
+                # If the feet circles are overlapping 
+                # And you click in the overlap it moves the closest foot
                 
                 elif feet[0][1] > feet[1][1]: feet[0] = list(pos)
                 else: feet[1] = list(pos)
 
                 feetdistance = math.sqrt((feet[1][0]-feet[0][0])**2 + (feet[1][1]-feet[0][1])**2)
 
-                #if feet are too far apart or left foot isnt on the left
+                # If feet are too far apart or left foot isnt on the left
                 if feet[0][0] > feet[1][0] or 325 < feetdistance: 
                     twisted = True
                     if scale == 0:
                         scale = 100
                     sounds[2].play()
+                    stamina -= effects['stamina']*100
                     
                 else:
                     twisted = False
                 locked = 3
-
-    #choosing items before the game starts
+    
+    # Choosing items before the game starts
     if menu == True:
+        menu_start()
         
-        ignore = True
-        screen.fill("#001600")
-        
-        screen.blit(images['backpack'],(30,100))
-        showtext("PICK ONE TO ADD",35,(width/2+50, height/2-250), "white")
-        showtext("TO YOUR BACKPACK",35,(width/2+70, height/2-220), "white")
-
-        for slot in inventory:
-            #adding perks
-            perk = invitems[inventory.index(slot)]
-
-            if slot.collidepoint(pos):
-               #selected:
-
-               #colouring in the perk that is being hover over
-               pygame.draw.rect(screen, "#007A59", slot)
-               pygame.draw.rect(screen, "#003F37", (slot[0]+4,slot[1]+4,slot[2]-8,slot[3]-60))
-
-               #printing the description of the perks
-               if type(stats[perk]) != list:
-                   pass
-                   #showtext(stats[perk],15,(slot[0]+65,slot[1]+100), "white")
-
-               else:
-                   for x, line in enumerate(stats[perk]):
-                       pass
-                       #showtext(line,15,(slot[0]+65,slot[1]+80+15*x), "white")
-                   
-               if clicked == True:
-                    menu = False
-                    print(perk)
-                    #shoes:
-                    if perk == 'Left Foot':
-                        walkradius[0] += 5
-                        normal[0] = pygame.transform.flip(pygame.image.load('images/boot.png'), True, False)
-
-                    elif perk == 'Right Foot':
-                        walkradius[1] += 8
-                        normal[1] = pygame.image.load('images/croc.png')
-                        effects['slipchance'] += 1
-
-                    elif perk == 'Water':
-                        effects['stamina'] -= 0.02
-
-                    elif perk == 'Clothes':
-                        effects['heat'] -= 0.02
-
-                    elif perk == 'Matress':
-                        pass
-
-                    else:
-                        #Sleeping bag
-                        pass
-
-                    shadows[normal[0]] = shadow(normal[0],(22,22,22))
-                    shadows[normal[1]] = shadow(normal[1],(22,22,22))
-            else:   
-                #big rect 
-                pygame.draw.rect(screen, "#004433", slot)
-            
-                pygame.draw.rect(screen, "#002816", (slot[0]+4,slot[1]+4,slot[2]-8,slot[3]-60))
-
-            #small rect
-            pygame.draw.rect(screen, "#002816", (slot[0]+4,slot[1]+127,slot[2]-8,slot[3]-130))
-            
-            showtext(str(perk).upper(),23,(slot[0]+65,slot[1]+150), "white")
-        clicked = False
-        screen.blit(images['perks'],(20, height/2-140))
    
     else:
-        #switching biomes
+        if lastbiomeswitch+20 > score/50:
+            current_biome = lastbiome
+        else:
+            current_biome = biome
+
+        # Switching biomes
         if score/50 > biomeswitch:
             lastbiome = biome
-            print(biome)
 
-            #chooses a random biome
+            # Chooses a random biome (other than the currentbiome)
             if biome == 'log':
                 randombiome = random.choice([biomeboulder,biomesnowy])
 
@@ -469,7 +514,7 @@ while running:
             biomeswitch += random.randint(40,60)
             
 
-        #Moving the platforms when we move:
+        # Moving the platforms when we move:
         if hoptime > 0:
             hoptime -= hoptime/3
             if hoptime < 0.1:hoptime = 0
@@ -483,28 +528,25 @@ while running:
             for foot in feet:
                 foot[1] += hoptime
 
-
             for footprint in footprints:
                 footprint[1][1] += hoptime
 
             score+=hoptime
 
-        #fill the screen with a color to wipe away anything from last frame
+        # Fill the screen with a color to wipe away anything from last frame
         screen.fill(bgcolor)
         
         for decor in decoration:
             screen.blit(decor['img'],(decor['hitbox'].x,decor['hitbox'].y))
-            #removing decorations if they hit the bottom and it isn't their biome
+            # Removing decorations if they hit the bottom and it isn't their biome
             
             if decor['hitbox'].y > 800:
                 decor['hitbox'].y = -20
                 if biome != decor['biome'] or decor['img'] in [images['transition1'],images['transition2']]:
                     decoration.remove(decor)
 
-
         for footprint in footprints:
             screen.blit(footprint[0],footprint[1])
-
 
         collisions = [[],[]]
         for platform in platforms[:]:
@@ -512,21 +554,20 @@ while running:
             if platform['biome'] == 'log':
 
                 if platform["img"] == images['log2']:
-                    #checking/printing the ladder steps 
+                    # Checking/printing the ladder steps 
                     screen.blit(shadows[platform['img']],(hitbox.x,hitbox.y+6))
                     screen.blit(images['log2'],(hitbox.x,hitbox.y))
 
                 elif platform["img"] == images['log1']:
-                    #checking/printing the tall logs
+                    # Checking/printing the tall logs
                     screen.blit(shadows[platform['img']],(hitbox.x-33,hitbox.y+6))
                     screen.blit(images['log1'],(hitbox.x-33,hitbox.y))
 
                 collisions[0].append(rect_circle_intersect(hitbox, feet[0], walkradius[0]*0.8))
                 collisions[1].append(rect_circle_intersect(hitbox, feet[1], walkradius[1]*0.8))
 
-
             else:
-                #checking/printing the boulders
+                # Checking/printing the boulders
                 if platform['timer'] == 0:
                     platform['img'].set_alpha(256)
                     screen.blit(shadows[platform['img']],(hitbox.x-hitbox.r,hitbox.y+4-hitbox.r))
@@ -536,83 +577,95 @@ while running:
                     collisions[1].append(circles_intersect(feet[1], walkradius[1]*0.8,[hitbox.x,hitbox.y],hitbox.r))
 
                 else:
-                    #printing how much time is left before boulder comes back
+                    # Setting boulder opacity to the amount of time before they reappear
                     platform['img'].set_alpha(platform['timer'])
                     screen.blit(platform['img'],(hitbox.x-hitbox.r,hitbox.y-hitbox.r))
 
-                    #showtext(str(round(platform['timer']/60)),74,(hitbox.x,hitbox.y), "white")
+                    #show_text(str(round(platform['timer']/60)),74,(hitbox.x,hitbox.y), "white")
                     platform['timer'] -= 1
-            #reset objects when the hit the bottom
+            # Reset objects when the hit the bottom
 
-            #boulders are bigger so they reset before the other shit
+            # Boulders are bigger so they reset before the other shit
             if platform['biome'] == 'boulder': 
 
+                # Moving platforms back to the top
                 if platform['hitbox'].y > 1000:
                     platform['hitbox'].x = random.randint(100,400)
                     platform['hitbox'].y = -400
                     platform['timer'] = 0
+
+                    # Remove the platform if it's not in their own biome
                     if biome != 'boulder':
                         platforms.remove(platform)
 
             elif platform['hitbox'].y > 800:
+                # Remove the platform if it's not in their own biome 
                 if biome != 'log':
                     platforms.remove(platform)
 
                 elif platform["img"] == images['log2']:
                     if random.randint(0,1) == 0: platform['hitbox'].x = random.randint(0,100)
                     else: platform['hitbox'].x = random.randint(300,400)
-                    platform['hitbox'].y = -400
 
                 elif platform["img"] == images['log1']:
                     platform['hitbox'].x = random.randint(100,300)
-                    platform['hitbox'].y = -400
+                
+                # Moving platforms back to the top
+                platform['hitbox'].y = -400
                 
         for foot in feet:
             screen.blit(normal[feet.index(foot)], (foot[0]-75,foot[1]-75))
             if True not in collisions[feet.index(foot)] and score != 0:
-                #adds footprints and a longer delay for being hurt for falling if we are in the snowy biome
-                if (biome == 'snowy' and scale == 0 and len(platforms) <= 5) or (lastbiomeswitch+20 > score/50 and lastbiome == 'snowy' and scale == 0):
-                    footprints.append([shadows[normal[1]], [feet[1][0]-75,feet[1][1]-75]])
-                    footprints.append([shadows[normal[0]], [feet[0][0]-75,feet[0][1]-75]])
-                    scale = 200
-                    sounds[0].play()
+
+                if current_biome == 'snowy':
+                    if scale == 0:
+                        # Adds footprints and a longer delay for being hurt for falling if we are in the snowy biome
+                        footprints.append([shadows[normal[1]], [feet[1][0]-75,feet[1][1]-75]])
+                        footprints.append([shadows[normal[0]], [feet[0][0]-75,feet[0][1]-75]])
+                        scale = 200
+                        sounds[0].play()
+                    stamina -= effects['stamina']
+                    heat -= effects['heat']
 
                 elif scale == 0:
-                    #print(len(platforms), biome, scale, bg)
                     scale = 100
                     sounds[0].play()
+                    stamina -= effects['stamina']*200
+                    
+                else:
+                    stamina -= effects['stamina']*4
+                    
+            elif twisted:
+                stamina -= effects['stamina']*2
+
+            elif stamina < 300:
+                #regeneration
+                stamina += effects['stamina']
+
+        if current_biome != 'snowy' : 
+            if heat > 150:
+                heat -= effects['heat']
+                
+            elif heat < 150:
+                heat += effects['heat']
 
         #if twisted: 
         #    #make the text fade away from the screen at some point future me
         #    if scale!=0:
-        #       showtext('Twisted Ankle',90,(width/2+5,height/2+5),'black')
-        #        showtext('Twisted Ankle',90,(width/2,height/2),'white')
+        #       show_text('Twisted Ankle',90,(width/2+5,height/2+5),'black')
+        #        show_text('Twisted Ankle',90,(width/2,height/2),'white')
 
         if scale != 0:
             #red screen
-            if (biome == 'snowy' and len(platforms) <= 5) or (lastbiomeswitch+20 > score/50 and lastbiome == 'snowy'):
-                tintDamage(screen,scale/200)
+            if current_biome == 'snowy':
+                damage_tint(screen,scale/200)
             else:
-                tintDamage(screen,scale/100)
-
-            #this is for when the player isn't stepping on an platform
-
-            if biome == 'snowy':
-                heat -= effects['heat']
-                stamina -= 0.05
-
-            elif clicked == True:
-                stamina -= 10
-
-            else: 
-                stamina -= 0.2
+                damage_tint(screen,scale/100)
 
             #making it fade away
             scale -= 2
 
-        elif stamina < 300:
-            #regeneration
-            stamina += effects['stamina']
+
 
         for i in range(2):
             pygame.draw.circle(screen,"white",feet[i],walkradius[i]+1,1)
@@ -630,9 +683,10 @@ while running:
         screen.blit(images['fire'], (width/2+130,90))
 
         #displaying score
-        showtext(str(int(score/50)),74,(width/2,35), "white")
+        show_text(str(int(score/50)),74,(width/2,35), "white")
 
-        showtext(str(biome),40,(width-30,height-30), "black")
+        #displaying biome in bottom right (for testing)
+        show_text(str(current_biome),40,(width-40,height-30), "black")
 
         #you die if you run out of stamina or your feet are off the screen
         if stamina <= 0 or heat <=0 or heat >= 300 or feet[0][1] > height or feet[1][1] > height: 
@@ -640,10 +694,10 @@ while running:
             print("  Score:",round(score/50,2))
             print("  Jumps:", jumps)
             exit()
-            
-        clicked = False
+
 
     pygame.display.flip()
     clock.tick(60)  # limits FPS to 60
+    clicked = False
 
 pygame.quit()
