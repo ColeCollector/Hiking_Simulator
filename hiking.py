@@ -79,6 +79,8 @@ effects = {
 
 platforms = []
 decoration = []
+footprints = []
+obstacles = []
 
 stats = {
 'Water'        : 'Stamina will refill faster',
@@ -90,7 +92,7 @@ stats = {
 }
 
 
-footprints = []
+
 
 running = True
 clicked = False
@@ -101,7 +103,7 @@ twisted = False
 
 #fuck you I did something
 print("penisssss")
-bgcolor = "#FFFFFF"
+bgcolor = "gray"
 
 feet = [[width/2-100,700],[width/2+100,700]]
 
@@ -180,7 +182,7 @@ def damage_tint(surface, scale):
 
 # Function to switch to boulder biome  
 def biomeboulder():
-    global biome, platforms
+    global biome, platforms, obstacles
     biome = 'boulder'
     #generating new platforms
     for i in range(26):
@@ -194,7 +196,14 @@ def biomeboulder():
             "biome" : "boulder",
             "timer" : 0
             })
-
+        
+    obstacles.append({
+        
+        "hitbox" : Hitbox(width/2, random.randint(-400,800) - 1350,100),
+        "img" : images['fire'],
+        "biome" : "boulder",
+        })
+    
     decoration.append({
         "hitbox" : pygame.Rect(0, -1400, 0, 0),
         "img" : images['transition1'],  
@@ -215,7 +224,7 @@ def biomesnowy():
     
     for _ in range(6):
         platform_x = random.randint(0,400)
-        platform_y = random.randint(-20,800) - 800
+        platform_y = random.randint(-400,800) - 1350
         decoration.append({
             "hitbox" : pygame.Rect(platform_x, platform_y, 0, 0),
             "img" : random.choice([images['rock2'],images['rock1'],images['stick'],images['fstick']]),
@@ -260,9 +269,9 @@ def biomelog():
         "biome" : "log"
         }) 
     
-    for _ in range(20):
+    for _ in range(25):
         platform_x = random.randint(0,400)
-        platform_y = random.randint(-1320,-500)
+        platform_y = random.randint(-400,800) - 1350
         decoration.append({
             "hitbox" : pygame.Rect(platform_x, platform_y, 0, 0),
             "img" : random.choice([images['grass'],images['grass'],images['grass'],images['rock']]),
@@ -307,15 +316,15 @@ hexagons = []
 selected = []
 
 for i in range(2):
-    vertices = calculate_hexagon_vertices((i*180+135,347+40),60)
+    vertices = calculate_hexagon_vertices((i*180+135,347),60)
     hexagons.append(vertices)
 
 for i in range(2):
-    vertices = calculate_hexagon_vertices((i*180+135,450+40),60)
+    vertices = calculate_hexagon_vertices((i*180+135,450),60)
     hexagons.append(vertices)
 
 for i in range(3):
-    vertices = calculate_hexagon_vertices((225,296+103*i+40),60)
+    vertices = calculate_hexagon_vertices((225,296+103*i),60)
     hexagons.append(vertices)
 
 
@@ -345,8 +354,8 @@ def menu_start():
         pygame.draw.polygon(screen, hexagon_outline_color, hexagon, 8)
     
     
-    if  pygame.Rect(width/2-100,650,200,50).collidepoint(pos):
-        pygame.draw.rect(screen, hexagon_hover_color, (width/2-100,650,200,50))
+    if  pygame.Rect(width/2-100,585,200,50).collidepoint(pos):
+        pygame.draw.rect(screen, hexagon_hover_color, (width/2-100,585,200,50))
         if clicked == True and len(selected) == 2:
             menu = False
             # Finding which perk based on which hexagon was selected
@@ -376,10 +385,10 @@ def menu_start():
             shadows[normal[1]] = shadow(normal[1],(22,22,22))
         
     else:
-        pygame.draw.rect(screen, hexagon_default_color, (width/2-100,650,200,50))
-    show_text('DONE',50,(width/2,675),'white')
+        pygame.draw.rect(screen, hexagon_default_color, (width/2-100,585,200,50))
+    show_text('DONE',50,(width/2,610),'white')
 
-    screen.blit(images['perks'],(0, -20))
+    screen.blit(images['perks'],(0, -60))
 
 def bg_color_switch():
     global bgcolor, platforms
@@ -389,12 +398,15 @@ def bg_color_switch():
         if bgcolor != '#A0A0A0' and (score/50 > lastbiomeswitch + 25):
             bgcolor = '#A0A0A0'
 
-        #randomly falling boulders
+        # Randomly falling boulders
+
+
         if random.randint(0,5-effects['slipchance']) == 0:
             ontop = [j for sublist in collisions for j, value in enumerate(sublist) if value]
+            
+            # If we are ontop of a boulder
             if len(ontop) != 0:
                 randplatform = random.choice(ontop)
-            
                 if platforms[randplatform]['biome'] == 'boulder' and platforms[randplatform]['timer'] == 0:
                     platforms[randplatform]['timer'] = 180
 
@@ -409,7 +421,7 @@ def bg_color_switch():
             bgcolor = '#A8CA59'
 
 # Starting with log biome
-biomelog()
+biomeboulder()
 biomeswitch = random.randint(40,60)
 lastbiomeswitch = 0
 lastbiome = None
@@ -429,9 +441,10 @@ while running:
                 if not (feet[i][0]-pos[0])**2 + (feet[i][1]-pos[1])**2 < walkradius[i]**2:
                     distances.append(math.sqrt((pos[0] - feet[i][0])**2 + (pos[1] - feet[i][1])**2))
 
-            #if the mouse is in one of the circles
+            #if the mouse is not in one of the circles
             if len(distances) == 2:
                 if distances[0] > distances[1]: 
+
                     pos = closest_point_on_circle(pos,1)
                     locked = 1
                 else: 
@@ -522,6 +535,9 @@ while running:
             for platform in platforms:
                 platform['hitbox'].y+=hoptime
 
+            for obstacle in obstacles:
+                obstacle['hitbox'].y+=hoptime
+
             for decor in decoration:
                 decor['hitbox'].y+=hoptime
 
@@ -541,7 +557,7 @@ while running:
             # Removing decorations if they hit the bottom and it isn't their biome
             
             if decor['hitbox'].y > 800:
-                decor['hitbox'].y = -20
+                decor['hitbox'].y = -400
                 if biome != decor['biome'] or decor['img'] in [images['transition1'],images['transition2']]:
                     decoration.remove(decor)
 
@@ -612,7 +628,12 @@ while running:
                 
                 # Moving platforms back to the top
                 platform['hitbox'].y = -400
-                
+
+        for obstacle in obstacles[:]:
+            hitbox = obstacle['hitbox']
+            pygame.draw.circle(screen,"green",[hitbox.x,hitbox.y],100)
+
+
         for foot in feet:
             screen.blit(normal[feet.index(foot)], (foot[0]-75,foot[1]-75))
             if True not in collisions[feet.index(foot)] and score != 0:
