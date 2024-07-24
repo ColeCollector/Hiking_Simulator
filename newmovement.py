@@ -1,15 +1,14 @@
-import pygame,random,math
+import pygame,math
 
 height = 800
 width = 500
-
 
 # pygame setup
 pygame.init()
 screen = pygame.display.set_mode((width, height))
 clock = pygame.time.Clock()
 running = True
-walkradius = [80,80]
+walkradius = [85,80]
 feet = [[width/2-100,700],[width/2+100,700]]
 ignore = False
 locked = 3
@@ -32,15 +31,15 @@ while running:
         else:
             distances = [None, None]
             for i in range(2):
-                if not (feet[i][0]-pos[0])**2 + (feet[i][1]-pos[1])**2 < walkradius[i]**2:
+                if not (feet[i][0]-pos[0])**2 + (feet[i][1]-pos[1])**2 < walkradius[i]**2 + 5:
                     distances[i] = (math.sqrt((pos[0] - feet[i][0])**2 + (pos[1] - feet[i][1])**2))
 
             #if the mouse is not in one of the circles
             if None not in distances:
                 if distances[0] > distances[1]: 
-
                     pos = closest_point_on_circle(pos,1)
                     locked = 1
+
                 else: 
                     pos = closest_point_on_circle(pos,0)
                     locked = 0
@@ -50,35 +49,40 @@ while running:
         if event.type == pygame.QUIT:
             running = False
 
-
-
         if event.type == pygame.MOUSEBUTTONUP and event.button == 1:
-            # Distance of first foot and second foot
-            first = (feet[0][0]-pos[0])**2 + (feet[0][1]-pos[1])**2 
-            second = (feet[1][0]-pos[0])**2 + (feet[1][1]-pos[1])**2 
-
             # Moving the feet to the cursor
-            if first <= walkradius[0]**2+5 and not second <= walkradius[0]**2+5: feet[0] = list(pos)
-            elif second <= walkradius[1]**2+5 and not first <= walkradius[1]**2+5: feet[1] = list(pos)
+
+            if locked == 0:
+                feet[0] = list(pos)
+
+            elif locked == 1:
+                feet[1] = list(pos)
+
+            elif distances[0] == None and distances[1] != None: 
+                feet[0] = list(pos)
+
+
+            elif distances[1] == None and distances[0] != None: 
+                feet[1] = list(pos)
 
             # If the feet circles are overlapping 
             # And you click in the overlap it moves the closest foot
             
-            elif feet[0][1] > feet[1][1]: feet[0] = list(pos)
-            else: feet[1] = list(pos)
+            elif feet[0][1] > feet[1][1]: 
+                feet[0] = list(pos)
+            else: 
+                feet[1] = list(pos)
+
             locked = 3
 
     screen.fill("#69B1EF")
 
     for foot in feet:
         pygame.draw.circle(screen,"white",foot,walkradius[feet.index(foot)]+1,1)
-        #pygame.draw.circle(screen,"#69B1EF",foot,walkradius)
         pygame.draw.circle(screen,"black",foot,20)
         
     pygame.draw.circle(screen,"red",pos,20)
-
     pygame.display.flip()
-
-    clock.tick(60)  # limits FPS to 60
+    clock.tick(60)
 
 pygame.quit()
