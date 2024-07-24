@@ -313,7 +313,7 @@ def biomebeach():
         }) 
     
     for i in range(2):
-        platform_x = -50
+        platform_x = 0
         platform_y = i*800 - 2100
         platforms.append({
             "hitbox" : pygame.Rect(platform_x, platform_y, 0, 0),
@@ -679,7 +679,7 @@ while running:
 
             elif platform['hitbox'].y > 800:
                 # Remove the platform if it's not in their own biome 
-                if biome != platform['hitbox']:
+                if biome != platform['biome']:
                     platforms.remove(platform)
 
                 elif platform["img"] == images['log2']:
@@ -723,11 +723,11 @@ while running:
                         footprints.append([shadows[normal[0]], [feet[0][0]-75,feet[0][1]-75]])
                         scale = 200
                         sounds[0].play()
-                    stamina -= effects['stamina']
-                    heat -= effects['heat']
+                    stamina -= effects['stamina']/4
+                    heat -= effects['heat']/2
 
                 elif current_biome == 'beach':
-                    heat += effects['heat']
+                    heat += effects['heat']/2
                     stamina -= effects['stamina']/4
 
                 elif scale == 0:
@@ -796,10 +796,14 @@ while running:
             print("STATS:")
             print("  Score:",round(score/50,2))
             print("  Jumps:", jumps)
+            if stamina <=0:
+                print("Cause of death : No Stamina" )
+            else:
+                print("Cause of death : Feet went off screen" )    
             exit()
 
         elif heat <=0 or heat >= 300:
-            stamina -= effects['stamina']*3
+            stamina -= effects['stamina']*2
 
 
     pygame.display.flip()

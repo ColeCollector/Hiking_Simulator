@@ -6,7 +6,7 @@ walking about on a trail that has plenty of "turns" and tons of different terrai
 main mechanics ideas
 ✓ put thumb/pointer down and swipe to move foot to the necessary location
 occasional need for big jumps with swipes up and then catching it with the thumb movement
-biomes with their own pros and cons
+✓biomes with their own pros and cons
 occasional one time events like dinky bridges or a log walk section
 
 extra additions
@@ -45,13 +45,13 @@ clothes:
 
 
 biomes
-beach: easy mode, walk slower, no obstacles, heat goes up faster
+✓beach: easy mode, walk slower, no obstacles, heat goes up faster
 bog: hard shit, frequent puddles, slippery obstacles, lots of jumping, high chances of wet feet, boardwalk sections
 ✓ boulders: hard if heavy, frequent long jumps, occasional loose rocks
 seaside flats: a little wet throughout, can wet feet if not careful, brown muck that can be slippery, heat increase faster
 forrest: windy and turny, obstacle heavy, infrequent jumps, boardwalk sections
 ladder sections: often short, high effort, hard if heavy, occasional missing rungs to add difficulty
-snowy area: cold, you leave footsteps, slippery
+✓snowy area: cold, you leave footsteps, slippery
 
 weather
 rain: more and larger puddles, slipperier obstacles, heat goes down fast, especially in not moving
