@@ -12,8 +12,8 @@ invitems = {"Water" : ["plastic bottle","metal bottle", "water jug"],"Sleeping B
 invitems = list(invitems.keys())
 
 images = {
-'log1' : pygame.image.load('images/new/log_1.png'),
-'log2' : pygame.image.load('images/new/log_2.png'),
+'log1' : pygame.image.load('images/log_1.png'),
+'log2' : pygame.image.load('images/log_2.png'),
 'rock' : pygame.image.load('images/rock.png'),
 'rock1' : pygame.image.load('images/rock_1.png'),
 'rock2' : pygame.image.load('images/rock_2.png'),
@@ -39,10 +39,10 @@ images = {
 'transition3' : pygame.image.load('images/transition_3.png'),
 'transition4' : pygame.image.load('images/transition_4.png'),
 'backpack' : pygame.image.load('images/backpack.png'),
-'perks' : pygame.image.load('images/new/perks.png')
+'perks' : pygame.image.load('images/perks.png')
 }
 
-normal = [pygame.transform.flip(pygame.image.load('images/new/foot.png'), True, False),pygame.image.load('images/new/foot.png')]
+normal = [pygame.transform.flip(pygame.image.load('images/foot.png'), True, False),pygame.image.load('images/foot.png')]
 
 def shadow(image,shadowc):
     image = image.convert_alpha()
@@ -623,18 +623,17 @@ while running:
             hitbox = platform['hitbox']
 
 
-
             if platform['biome'] == 'log':
 
                 if platform["img"] == images['log2']:
                     # Checking/printing the ladder steps 
                     screen.blit(shadows[platform['img']],(hitbox.x,hitbox.y+6))
-                    screen.blit(images['log2'],(hitbox.x,hitbox.y))
+                    screen.blit(platform['img'],(hitbox.x,hitbox.y))
 
                 elif platform["img"] == images['log1']:
                     # Checking/printing the tall logs
                     screen.blit(shadows[platform['img']],(hitbox.x-33,hitbox.y+6))
-                    screen.blit(images['log1'],(hitbox.x-33,hitbox.y))
+                    screen.blit(platform['img'],(hitbox.x-33,hitbox.y))
 
                 collisions[0].append(rect_circle_intersect(hitbox, feet[0], walkradius[0]*0.8))
                 collisions[1].append(rect_circle_intersect(hitbox, feet[1], walkradius[1]*0.8))
@@ -645,11 +644,12 @@ while running:
                     counter = 0
 
                 screen.blit(platform['img'][round(counter/60-1)], (hitbox.x,hitbox.y))
+
             else:
                 # Checking/printing the boulders
                 if platform['timer'] == 0:
                     platform['img'].set_alpha(256)
-                    screen.blit(shadows[platform['img']],(hitbox.x-hitbox.r,hitbox.y+4-hitbox.r))
+                    screen.blit(shadows[platform['img']],(hitbox.x-hitbox.r,hitbox.y+6-hitbox.r))
                     screen.blit(platform['img'],(hitbox.x-hitbox.r,hitbox.y-hitbox.r))
                     #pygame.draw.circle(screen,"green",[hitbox.x,hitbox.y],hitbox.r)
                     collisions[0].append(circles_intersect(feet[0], walkradius[0]*0.8,[hitbox.x,hitbox.y],hitbox.r))
@@ -659,9 +659,8 @@ while running:
                     # Setting boulder opacity to the amount of time before they reappear
                     platform['img'].set_alpha(platform['timer'])
                     screen.blit(platform['img'],(hitbox.x-hitbox.r,hitbox.y-hitbox.r))
-
-                    #show_text(str(round(platform['timer']/60)),74,(hitbox.x,hitbox.y), "white")
                     platform['timer'] -= 1
+
             # Reset objects when the hit the bottom
 
             # Boulders are bigger so they reset before the other shit

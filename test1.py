@@ -1,138 +1,120 @@
 import pygame
-import os
+import math
 
+# Initialize Pygame
 pygame.init()
-screen = pygame.display.set_mode((600, 800))
-font = pygame.font.Font(None, 36)
 
-# Load backpack image
-backpack_image = pygame.image.load(os.path.join('images/backpack.png'))
-backpack_rect = backpack_image.get_rect(center=(300, 400))
+# Define the dimensions of the display surface
+width, height = 450, 800
+screen = pygame.display.set_mode((width, height))
+pygame.display.set_caption('Hexagon in Pygame')
 
-def draw_ui():
-    screen.fill((0, 0, 0))
-    screen.blit(backpack_image, backpack_rect)
-    y = 100
-    for item in items:
-        item_text = font.render(f"{item.name}: {item.quantity}", True, (255, 255, 255))
-        screen.blit(item_text, (50, y))
+# Define colors
+bg_color = '#007F37'
+hexagon_default_color = '#00603E'
+hexagon_hover_color = '#00D889'
+hexagon_selected_color = '#FFFFFF'
+hexagon_outline_color = '#003D26'
 
-        increase_button = pygame.Rect(400, y, 50, 50)
-        decrease_button = pygame.Rect(500, y, 50, 50)
-        pygame.draw.rect(screen, (0, 255, 0), increase_button)
-        pygame.draw.rect(screen, (255, 0, 0), decrease_button)
+# Function to calculate the vertices of a hexagon
+def calculate_hexagon_vertices(center, size):
+    return [
+        (center[0] + size * math.cos(math.radians(60 * i)), 
+         center[1] + size * math.sin(math.radians(60 * i)))
+        for i in range(6)
+    ]
 
-        plus_text = font.render("+", True, (0, 0, 0))
-        minus_text = font.render("-", True, (0, 0, 0))
-        screen.blit(plus_text, (415, y))
-        screen.blit(minus_text, (515, y))
+# Function to check if a point is inside a polygon
+def point_in_polygon(point, vertices):
+    x, y = point
+    n = len(vertices)
+    inside = False
+    p1x, p1y = vertices[0]
+    for i in range(n + 1):
+        p2x, p2y = vertices[i % n]
+        if y > min(p1y, p2y):
+            if y <= max(p1y, p2y):
+                if x <= max(p1x, p2x):
+                    if p1y != p2y:
+                        xinters = (y - p1y) * (p2x - p1x) / (p2y - p1y) + p1x
+                    if p1x == p2x or x <= xinters:
+                        inside = not inside
+        p1x, p1y = p2x, p2y
+    return inside
 
-        y += 100
+# Hexagon properties
+hexagons = []
+selected = []
 
-    pygame.display.flip()
-
-
-# Load item images (example with water)
-water_image = pygame.image.load(os.path.join('images/rock.png'))
-water_rect = water_image.get_rect(topleft=(50, 100))
-
-
-
-
-import time
-
-pygame.init()
-screen = pygame.display.set_mode((600, 800))
-font = pygame.font.Font(None, 36)
-
-# Load backpack image
-backpack_image = pygame.image.load(os.path.join('images/backpack.png'))
-backpack_rect = backpack_image.get_rect(center=(300, 400))
-
-# Load item images
-water_image = pygame.image.load(os.path.join('images/rock.png'))
-water_rect = water_image.get_rect(topleft=(50, 100))
-
-# Define other items similarly...
-
-class Item:
-    def __init__(self, name, quantity=0):
-        self.name = name
-        self.quantity = quantity
-
-    def increase(self):
-        self.quantity += 1
-
-    def decrease(self):
-        if self.quantity > 0:
-            self.quantity -= 1
-
-items = [
-    Item("Water"),
-    Item("Matress"),
-    Item("Sleeping Bag"),
-    Item("Left Foot"),
-    Item("Right Foot"),
-    Item("Clothes")
+hexagon_positions = [
+    (135, 347), (315, 347),
+    (135, 450), (315, 450),
+    (225, 296), (225, 399), (225, 502)
 ]
+hexagon_size = 60
 
-def draw_ui():
-    screen.fill((0, 0, 0))
-    screen.blit(backpack_image, backpack_rect)
-    y = 100
-    for item in items:
-        item_text = font.render(f"{item.name}: {item.quantity}", True, (255, 255, 255))
-        screen.blit(item_text, (50, y))
+for pos in hexagon_positions:
+    vertices = calculate_hexagon_vertices(pos, hexagon_size)
+    hexagons.append(vertices)
 
-        increase_button = pygame.Rect(400, y, 50, 50)
-        decrease_button = pygame.Rect(500, y, 50, 50)
-        pygame.draw.rect(screen, (0, 255, 0), increase_button)
-        pygame.draw.rect(screen, (255, 0, 0), decrease_button)
+# State management
+def menu():
+    running = True
+    while running:
+        clicked = False
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                return False
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                clicked = True
 
-        plus_text = font.render("+", True, (0, 0, 0))
-        minus_text = font.render("-", True, (0, 0, 0))
-        screen.blit(plus_text, (415, y))
-        screen.blit(minus_text, (515, y))
+        screen.fill(bg_color)
 
-        y += 100
+        mouse_pos = pygame.mouse.get_pos()
+        for i, hexagon in enumerate(hexagons):
+            if point_in_polygon(mouse_pos, hexagon):
+                if clicked and i not in selected:
+                    if len(selected) < 2:
+                        selected.append(i)
+                color = hexagon_hover_color
+            else:
+                color = hexagon_default_color
 
-    pygame.display.flip()
+            if i in selected:
+                color = hexagon_selected_color
 
-dragging = None
-item_positions = {"water": water_rect.topleft}
+            pygame.draw.polygon(screen, color, hexagon, 0)
+            pygame.draw.polygon(screen, hexagon_outline_color, hexagon, 4)
 
-running = True
-while running:
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
+        pygame.display.flip()
+
+        if len(selected) == 2:
             running = False
-        elif event.type == pygame.MOUSEBUTTONDOWN:
-            x, y = event.pos
-            if water_rect.collidepoint(x, y):
-                dragging = 'water'
-        elif event.type == pygame.MOUSEBUTTONUP:
-            if dragging and backpack_rect.collidepoint(event.pos):
-                for item in items:
-                    if item.name.lower() == dragging:
-                        item.increase()
-                dragging = None
-                # Animate the item going into the backpack
-                item_positions['water'] = backpack_rect.center
-                draw_ui()
-                screen.blit(water_image, item_positions['water'])
-                pygame.display.flip()
-                time.sleep(0.5)  # Simple animation delay
-                item_positions['water'] = water_rect.topleft
-            dragging = None
-        elif event.type == pygame.MOUSEMOTION and dragging:
-            if dragging == 'water':
-                water_rect.move_ip(event.rel)
-                item_positions['water'] = water_rect.topleft
-
-    draw_ui()
-    screen.blit(water_image, item_positions['water'])
-    pygame.display.flip()
-
-pygame.quit()
 
 
+def game():
+    running = True
+    while running:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                running = False
+
+        screen.fill((0, 64, 0))  # Clear the screen with black color
+        # Game logic and drawing goes here
+
+        pygame.display.flip()
+
+# Main loop
+current_state = 'menu'
+
+while True:
+    if current_state == 'menu':
+        menu()
+        current_state = 'game'
+
+
+    elif current_state == 'game':
+        game()
+        break  # Exit after the game state for this example
