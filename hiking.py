@@ -582,26 +582,26 @@ while running:
             
 
         # Moving the platforms when we move:
-        if hoptime > 0:
-            hoptime -= hoptime/3
-            if hoptime < 0.1:hoptime = 0
 
-            for platform in platforms:
-                platform['hitbox'].y+=hoptime
+        hoptime -= hoptime/3
+        if hoptime < 0.1:hoptime = 0
 
-            for obstacle in obstacles:
-                obstacle['hitbox'].y+=hoptime
+        for platform in platforms:
+            platform['hitbox'].y+=hoptime
 
-            for decor in decoration:
-                decor['hitbox'].y+=hoptime
+        for obstacle in obstacles:
+            obstacle['hitbox'].y+=hoptime
 
-            for foot in feet:
-                foot[1] += hoptime
+        for decor in decoration:
+            decor['hitbox'].y+=hoptime
 
-            for footprint in footprints:
-                footprint[1][1] += hoptime
+        for foot in feet:
+            foot[1] += hoptime
 
-            score+=hoptime
+        for footprint in footprints:
+            footprint[1][1] += hoptime
+
+        score+=hoptime
 
         # Fill the screen with a color to wipe away anything from last frame
         screen.fill(bgcolor)
