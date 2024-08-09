@@ -94,7 +94,7 @@ class Platforms:
 
         # Generating platforms based on the biome
         if new_biome == 'boulder':
-            self.platforms.append(Platform('boulder', None, [0, -1400], images['transition1'], 0))
+            self.platforms.append(Platform('boulder', None, [0, -1400], images['transition4'], 0))
 
             for i in range(26):
                 x = random.randint(0, 350)
@@ -102,6 +102,12 @@ class Platforms:
                 randomchoice = random.randint(0, 2)
                 self.platforms.append(Platform('boulder', ([56, 56, 45][randomchoice]), (x, y), [images['boulder'], 
                 images['fboulder'], images['boulder2']][randomchoice], 0))
+
+            for _ in range(25):
+                x = random.randint(0,400)
+                y = random.randint(-400,800) - 1350
+                self.platforms.append(Platform('boulder', None, (x, y), 
+                random.choices([images['sand'],images['sand_2'],images['sand_3'],images['sand_dollar'],images['starfish']],weights=[29,29,29,4,9])[0], 0))
 
         elif new_biome == 'bog':
             self.platforms.append(Platform('bog', None, (0, -1400), images['transition3'], 0))
@@ -135,7 +141,7 @@ class Platforms:
                 x = random.randint(0,400)
                 y = random.randint(-400,800) - 1350
                 self.platforms.append(Platform('beach', None, (x, y), 
-                random.choices([images['sand'],images['sand_2'],images['sand_3'],images['sand_dollar'],images['starfish']],weights=[28,28,28,4,12])[0], 0))
+                random.choices([images['sand'],images['sand_2'],images['sand_3'],images['sand_dollar'],images['starfish']],weights=[29,29,29,4,9])[0], 0))
 
     def update(self, speed, biome, banned):
         for platform in self.platforms[::-1]:

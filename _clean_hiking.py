@@ -31,7 +31,7 @@ images = {
 'fstick' : pygame.transform.flip(pygame.image.load('images/stick.png'), True, False),
 
 'grass' : pygame.image.load('images/grass.png'),
-'fire' : pygame.image.load('images/fire.png'),
+'bar' : pygame.image.load('images/bar.png'),
 'bolt' : pygame.image.load('images/bolt.png'),
 
 'sand' : pygame.image.load('images/sand.png'),
@@ -119,13 +119,13 @@ dead = 0
 
 transition = -60
 heat = 150
-stamina = 3000
+stamina = 300
 
-clicked = False
+clicking = False
 twisted = False
 game_status = 'menu'
 
-biome = 'beach'
+biome = 'snowy'
 biomeswitch = 30
 lastbiomeswitch = 0
 lastbiome = None
@@ -133,8 +133,18 @@ lastbiome = None
 platforms = []
 platforms = Platforms(platforms, images, biome)
 
-colors = {'bog':'#A8CA59','boulder':'#A0A0A0', 'snowy':'#FFFFFF', 'beach':'#FDE9BE'}
+colors = {'bog':'#A8CA59','boulder':'#FDE9BE', 'snowy':'#E4FFFF', 'beach':'#FDE9BE'}
 bgcolor = "gray"
+
+# Snowflake properties
+snowflakes = []
+for _ in range(200):  # Number of snowflakes
+    x = random.randint(0, WIDTH + 500)
+    y = random.randint(-200, 0)
+    speed = random.randint(2, 4)
+    size = random.randint(2, 4)
+    angle = random.randint(2, 4)
+    snowflakes.append([x, y, speed, size, angle])
 
 running = True
 
@@ -159,7 +169,7 @@ while running:
             running = False
 
         elif event.type == pygame.MOUSEBUTTONUP and event.button == 1:  # If the left mouse button is released
-            clicked = True
+            clicking = True
 
             if game_status == 'game':
                 sounds[1].play()
@@ -193,11 +203,11 @@ while running:
                     twisted = False
 
     if game_status == 'menu':
-        menu = Menu(screen, clicked, pos, walkradius, normal, images)
+        menu = Menu(screen, clicking, pos, walkradius, normal, images)
         game_status = menu.game_status
         effects = menu.effects
-        shadows[normal[0]] = shadow(normal[0],(22,22,22))
-        shadows[normal[1]] = shadow(normal[1],(22,22,22))
+        shadows[normal[0]] = shadow(normal[0],(160,160,160))
+        shadows[normal[1]] = shadow(normal[1],(160,160,160))
 
     elif game_status == 'game':
         # Changing the bg after the transition has past
@@ -233,7 +243,7 @@ while running:
 
         platforms.update(speed, biome, [images['transition1'], images['transition3'], shadows[normal[0]],shadows[normal[1]]])
         platforms.render(screen, shadows, images)  
-        platforms.collision_check(feet,walkradius,clicked)
+        platforms.collision_check(feet,walkradius,clicking)
         collisions = platforms.collisions
 
 
@@ -282,6 +292,18 @@ while running:
             elif heat < 150:
                 heat += effects['heat']
 
+        else:
+            # Update snowflakes
+            for flake in snowflakes:
+                flake[0] -= flake[2] * (flake[3]/2)
+                flake[1] += flake[2]  # Move flake down by its speed
+                if flake[1] > HEIGHT or flake[0] < 0:
+                    flake[0] = random.randint(0, WIDTH + 500)  # New random x position
+                    flake[1] = random.randint(-20, -5)  # Start above the screen
+
+                # Draw the snowflake
+                pygame.draw.circle(screen, 'white', (flake[0], flake[1]), flake[3])
+
         if scale != 0:
             # Red screen
             if current_biome == 'snowy':
@@ -299,14 +321,15 @@ while running:
         pygame.draw.circle(screen, pygame.Color("red"), pos, 20)
         
         # Stamina bar
-        pygame.draw.rect(screen, "darkblue", (WIDTH/2-152,68,304,24))
-        pygame.draw.rect(screen, "blue", (WIDTH/2-150,70,stamina,20))
-        screen.blit(images['bolt'], (WIDTH/2-170,58))
+        pygame.draw.rect(screen, "#133672", (WIDTH/2-152,68,304,24))
+        pygame.draw.rect(screen, "#2B95FF", (WIDTH/2-150,70,stamina,20))
 
         # Heat bar
-        pygame.draw.rect(screen, "red", (WIDTH/2-152,100,304,24))
-        pygame.draw.rect(screen, "orange", (WIDTH/2-150,102,heat,20))
-        screen.blit(images['fire'], (WIDTH/2+130,90))
+        pygame.draw.rect(screen, "#AFAFAF", (WIDTH/2-152,108,304,24))
+        pygame.draw.rect(screen, "#E00000", (WIDTH/2-150,110,heat,20))
+        screen.blit(images['bar'], (WIDTH/2-198,58))
+
+        show_text(str(round(heat))+"/300",28,(WIDTH/2-45,152), "white")
 
         # Displaying biome in bottom right (for testing)
         show_text(str(current_biome),40,(WIDTH-50,HEIGHT-30), "black")
@@ -351,7 +374,7 @@ while running:
     # Update the display
     pygame.display.flip()
     clock.tick(60)
-    clicked = False
+    clicking = False
 
 # Quit Pygame
 pygame.quit()
