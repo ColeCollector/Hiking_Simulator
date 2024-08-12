@@ -133,10 +133,10 @@ class Platforms:
                 y = i*600-2100
                 self.platforms.append(Platform('bog', [90, 400], [x, y], images['log1'], 0))
             
-            for _ in range(25):
+            for _ in range(45):
                 x = random.randint(0, 520)
                 y = random.randint(-400, 960) - 1350
-                self.platforms.append(Platform('bog', None, (x, y), random.choice([images['grass'], images['grass'], images['grass'], images['rock']]), 0))
+                self.platforms.append(Platform('bog', None, (x, y), random.choice([images['grass'], images['grass'], images['grass'], images['shading'], images['shading_2'], images['shading_3'], images['fshading'], images['rock']]), 0))
         
         elif new_biome == 'snowy':
             self.platforms.append(Platform('snowy', None, (0, -1400), images['transition2'], 0))

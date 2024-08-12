@@ -21,6 +21,23 @@ sounds = [pygame.mixer.Sound('sounds/ow.wav'), pygame.mixer.Sound('sounds/jump.w
 sounds[0].set_volume(0.1)
 sounds[1].set_volume(0.2)
 
+def shadow(image, shadowc):
+    image = image.convert_alpha()
+    imgwidth, imgheight = image.get_size()
+    image.lock()
+
+    # Iterate over each pixel
+    for x in range(imgwidth):
+        for y in range(imgheight):
+            color = image.get_at((x, y))
+            if color.a != 0:
+                image.set_at((x, y), shadowc + (color.a, ))
+
+    # Unlock the surface
+    image.unlock()
+    return image
+
+
 images = {
 'log1' : pygame.image.load('images/log_1.png'), 
 'log2' : pygame.image.load('images/log_2.png'), 
@@ -32,6 +49,10 @@ images = {
 'fstick' : pygame.transform.flip(pygame.image.load('images/stick.png'), True, False), 
 
 'grass' : pygame.image.load('images/grass.png'), 
+'shading' : pygame.image.load('images/shading.png'), 
+'fshading' : pygame.transform.flip(pygame.image.load('images/shading.png'), True, False), 
+'shading_2' : pygame.image.load('images/shading_2.png'), 
+'shading_3' : shadow(pygame.image.load('images/shading_2.png'),(143,165,120)), 
 'bar' : pygame.image.load('images/bar.png'), 
 
 'sand' : pygame.image.load('images/sand.png'), 
@@ -51,21 +72,16 @@ images = {
 'perks' : pygame.image.load('images/perks.png')
 }
 
-def shadow(image, shadowc):
-    image = image.convert_alpha()
-    imgwidth, imgheight = image.get_size()
-    image.lock()
+shadows = {
+    images['log1'] : shadow(images['log1'], (120, 165, 80)), 
+    images['log2'] : shadow(images['log2'], (120, 165, 80)), 
+    images['boulder'] : shadow(images['boulder'], (76, 76, 76)), 
+    images['fboulder'] : shadow(images['fboulder'], (76, 76, 76)), 
+    images['boulder2'] : shadow(images['boulder2'], (76, 76, 76)), 
+    #images['big_boulder'] : shadow(images['big_boulder'], (76, 76, 76))
+    }
+    
 
-    # Iterate over each pixel
-    for x in range(imgwidth):
-        for y in range(imgheight):
-            color = image.get_at((x, y))
-            if color.a != 0:
-                image.set_at((x, y), shadowc + (color.a, ))
-
-    # Unlock the surface
-    image.unlock()
-    return image
 
 def closest_point_on_circle(pos, center, radius):
     dx = pos[0] - center[0]
@@ -92,14 +108,6 @@ def damage_tint(surface, scale):
     a = min(255, max(0, round(255 * (1-scale))))
     surface.fill((255, a, a), special_flags = pygame.BLEND_MIN)
 
-shadows = {
-    images['log1'] : shadow(images['log1'], (120, 165, 80)), 
-    images['log2'] : shadow(images['log2'], (120, 165, 80)), 
-    images['boulder'] : shadow(images['boulder'], (76, 76, 76)), 
-    images['fboulder'] : shadow(images['fboulder'], (76, 76, 76)), 
-    images['boulder2'] : shadow(images['boulder2'], (76, 76, 76)), 
-    #images['big_boulder'] : shadow(images['big_boulder'], (76, 76, 76))
-    }
 
 normal = [pygame.transform.flip(pygame.image.load('images/foot.png'), True, False), pygame.image.load('images/foot.png')]
 feet = [[170/2, 700/2], [370/2, 700/2]]
@@ -124,7 +132,7 @@ clicking = False
 twisted = False
 game_status = 'menu'
 
-biome = 'bog'
+biome = 'snowy'
 biomeswitch = 30/2
 lastbiomeswitch = 0
 lastbiome = None
@@ -258,10 +266,8 @@ while running:
                 if current_biome == 'snowy':
                     if scale == 0:
                         # Adds footprints and a longer delay for being hurt for falling if we are in the snowy biome
-                        #footprints.append([shadows[normal[1]], [feet[1][0]-75, feet[1][1]-75]])
-                        #footprints.append([shadows[normal[0]], [feet[0][0]-75, feet[0][1]-75]])
-                        platforms.footprint(platforms, [feet[1][0]-75, feet[1][1]-75], shadows[normal[1]])
-                        platforms.footprint(platforms, [feet[0][0]-75, feet[0][1]-75], shadows[normal[0]])
+                        platforms.footprint(platforms, [(feet[1][0]-38)*2, (feet[1][1]-38)*2], shadows[normal[1]])
+                        platforms.footprint(platforms, [(feet[0][0]-38)*2, (feet[0][1]-38)*2], shadows[normal[0]])
                         scale = 200
                         sounds[0].play()
 
