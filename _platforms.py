@@ -69,7 +69,7 @@ class Platform:
                 
                 screen.blit(shadows[self.img], (self.pos[0]-16, self.pos[1]+3))
                 screen.blit(self.img, (self.pos[0]-16, self.pos[1]))
-                pygame.draw.rect(screen, "red", (self.pos+self.radius))
+                #pygame.draw.rect(screen, "red", (self.pos+self.radius))
 
             else:
                 if self.radius != None:

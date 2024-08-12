@@ -213,10 +213,10 @@ while running:
 
     elif game_status == 'game':
         # Changing the bg after the transition has past
-        if bgcolor != colors[biome] and (score/50 > lastbiomeswitch + 28):
+        if bgcolor != colors[biome] and (score/50 > lastbiomeswitch + 28/2):
             bgcolor = colors[biome]
 
-        if lastbiomeswitch+20 > score/50:
+        if lastbiomeswitch+20/2 > score/50:
             current_biome = lastbiome
         else:
             current_biome = biome

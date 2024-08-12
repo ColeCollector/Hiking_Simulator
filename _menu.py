@@ -101,15 +101,16 @@ class Menu:
                 # Applying the perks
                 for perk in perks:
                     if perk == 'Left Foot':
-                        walkradius[0] += 5
+                        walkradius[0] += 2
                         normal[0] = pygame.transform.flip(pygame.image.load('images/boot.png'), True, False)
 
                     elif perk == 'Right Foot':
-                        walkradius[1] += 8
-                        normal[1] = pygame.image.load('images/croc.png')
-                        effects['slipchance'] += 1
+                        walkradius[1] += 2
+                        normal[1] = pygame.image.load('images/boot.png')
+                        #effects['slipchance'] += 1
 
                     elif perk == 'Water':
+                        walkradius[1] -= 3
                         effects['stamina'] -= 0.01
 
                     elif perk == 'Clothes':
