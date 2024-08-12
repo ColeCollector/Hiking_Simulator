@@ -36,17 +36,26 @@ log1 = pygame.image.load('images/log_1.png')
 class Platform:
     def __init__(self, biome, radius, pos, img, timer):
         self.biome = biome
-        self.radius = radius
-        self.pos = list(pos)
+
+        if radius == None:
+            self.radius = radius
+
+        elif type(radius) == list:
+            self.radius = [radius[0]/2,radius[1]/2]
+
+        else:
+            self.radius = radius/2
+
+        self.pos = [pos[0]/2,pos[1]/2]
         self.img = img
         self.timer = timer
 
-    def update(self, speed, biome,platforms, banned):
+    def update(self, speed, biome, platforms, banned):
         self.pos[1] += speed
 
-        if self.pos[1] > 800:
+        if self.pos[1] > 960:
             if self.biome == biome and self.img not in banned:
-                self.pos[1] = - 400
+                self.pos[1] = - 400/2
                 self.timer = 0
             else: 
                 platforms.remove(self)
@@ -58,13 +67,13 @@ class Platform:
 
             if self.img == images['log1']:
                 
-                screen.blit(shadows[self.img], (self.pos[0]-33,self.pos[1]+6))
-                screen.blit(self.img, (self.pos[0]-33,self.pos[1]))
-                #pygame.draw.rect(screen, "red", (self.pos+self.radius))
+                screen.blit(shadows[self.img], (self.pos[0]-16, self.pos[1]+3))
+                screen.blit(self.img, (self.pos[0]-16, self.pos[1]))
+                pygame.draw.rect(screen, "red", (self.pos+self.radius))
 
             else:
                 if self.radius != None:
-                    screen.blit(shadows[self.img], (self.pos[0],self.pos[1]+6))
+                    screen.blit(shadows[self.img], (self.pos[0], self.pos[1]+3))
                 screen.blit(self.img, self.pos)
             
         else:
@@ -81,6 +90,7 @@ class Platform:
             elif self.biome == 'bog':
                 collisions[0].append(rect_circle_intersect(pygame.Rect(self.pos+self.radius), feet[0], walkradius[0]*0.8))
                 collisions[1].append(rect_circle_intersect(pygame.Rect(self.pos+self.radius), feet[1], walkradius[1]*0.8))
+
         else:
             collisions[0].append(False)
             collisions[1].append(False)
@@ -97,51 +107,51 @@ class Platforms:
             self.platforms.append(Platform('boulder', None, [0, -1400], images['transition4'], 0))
 
             for i in range(26):
-                x = random.randint(0, 350)
+                x = random.randint(0, 490)
                 y = i*50 - 1800
                 randomchoice = random.randint(0, 2)
                 self.platforms.append(Platform('boulder', ([56, 56, 45][randomchoice]), (x, y), [images['boulder'], 
                 images['fboulder'], images['boulder2']][randomchoice], 0))
 
             for _ in range(25):
-                x = random.randint(0,400)
-                y = random.randint(-400,800) - 1350
+                x = random.randint(0, 520)
+                y = random.randint(-400, 960) - 1350
                 self.platforms.append(Platform('boulder', None, (x, y), 
-                random.choices([images['sand'],images['sand_2'],images['sand_3'],images['sand_dollar'],images['starfish']],weights=[29,29,29,4,9])[0], 0))
+                random.choices([images['sand'], images['sand_2'], images['sand_3'], images['sand_dollar'], images['starfish']], weights=[29, 29, 29, 4, 9])[0], 0))
 
         elif new_biome == 'bog':
             self.platforms.append(Platform('bog', None, (0, -1400), images['transition3'], 0))
 
             for i in range(8):
                 if random.randint(0, 1) == 0: x = random.randint(0, 100)
-                else: x = random.randint(250, 350)
+                else: x = random.randint(250, 500)
                 y = i*120-1400
                 self.platforms.append(Platform('bog', [100, 20], [x, y], images['log2'], 0))
 
-            for i in range(1,3):
-                x = random.randint(150,200)
+            for i in range(1, 3):
+                x = random.randint(150, 200)
                 y = i*600-2100
                 self.platforms.append(Platform('bog', [90, 400], [x, y], images['log1'], 0))
             
             for _ in range(25):
-                x = random.randint(0,400)
-                y = random.randint(-400,800) - 1350
-                self.platforms.append(Platform('bog', None, (x, y), random.choice([images['grass'],images['grass'],images['grass'],images['rock']]), 0))
+                x = random.randint(0, 520)
+                y = random.randint(-400, 960) - 1350
+                self.platforms.append(Platform('bog', None, (x, y), random.choice([images['grass'], images['grass'], images['grass'], images['rock']]), 0))
         
         elif new_biome == 'snowy':
             self.platforms.append(Platform('snowy', None, (0, -1400), images['transition2'], 0))
             for _ in range(6):
-                x = random.randint(0,400)
-                y = random.randint(-400,800) - 1350
-                self.platforms.append(Platform('snowy', None, (x, y), random.choice([images['rock2'],images['rock1'],images['stick'],images['fstick']]), 0))
+                x = random.randint(0, 520)
+                y = random.randint(-400, 960) - 1350
+                self.platforms.append(Platform('snowy', None, (x, y), random.choice([images['rock2'], images['rock1'], images['stick'], images['fstick']]), 0))
         
         elif new_biome == 'beach':
             self.platforms.append(Platform('beach', None, (0, -1400), images['transition4'], 0))
             for _ in range(25):
-                x = random.randint(0,400)
-                y = random.randint(-400,800) - 1350
+                x = random.randint(0, 400)
+                y = random.randint(-400, 960) - 1350
                 self.platforms.append(Platform('beach', None, (x, y), 
-                random.choices([images['sand'],images['sand_2'],images['sand_3'],images['sand_dollar'],images['starfish']],weights=[29,29,29,4,9])[0], 0))
+                random.choices([images['sand'], images['sand_2'], images['sand_3'], images['sand_dollar'], images['starfish']], weights=[29, 29, 29, 4, 9])[0], 0))
 
     def update(self, speed, biome, banned):
         for platform in self.platforms[::-1]:

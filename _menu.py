@@ -1,7 +1,7 @@
 import pygame, math
 
 # Display Text
-def show_text(screen,text,size,location,color):
+def show_text(screen, text, size, location, color):
     a1 = pygame.font.Font(None, size).render(text, True, color)
     a2 = a1.get_rect(center=location) 
     screen.blit(a1, a2)
@@ -44,27 +44,26 @@ hexagons = []
 selected = []
 
 for i in range(2):
-    vertices = calculate_hexagon_vertices((i*180+135,347),60)
+    vertices = calculate_hexagon_vertices(((i*180 + 180)/2, 428/2), 26)
     hexagons.append(vertices)
 
 for i in range(2):
-    vertices = calculate_hexagon_vertices((i*180+135,450),60)
+    vertices = calculate_hexagon_vertices(((i*180 + 180)/2, 532/2), 26)
     hexagons.append(vertices)
 
 for i in range(3):
-    vertices = calculate_hexagon_vertices((225,296+103*i),60)
+    vertices = calculate_hexagon_vertices((270/2, (378 + 104*i)/2), 26)
     hexagons.append(vertices)
 
-invitems = {"Water" : ["plastic bottle","metal bottle", "water jug"],"Sleeping Bag":["light bag(10C)","3 season bag(-5C)","winter bag(-40)"], "Left Foot":["crocs","hiking boots","work boots"],"Right Foot":["crocs","hiking boots","work boots"],"Locked_1" : None,"Locked_2" : None, "Clothes":["no spare clothes","an extra of everything","7 days of clothes"]}
+invitems = {"Water" : ["plastic bottle", "metal bottle", "water jug"], "Sleeping Bag":["light bag(10C)", "3 season bag(-5C)", "winter bag(-40)"], "Left Foot":["crocs", "hiking boots", "work boots"], "Right Foot":["crocs", "hiking boots", "work boots"], "Locked_1" : None, "Locked_2" : None, "Clothes":["no spare clothes", "an extra of everything", "7 days of clothes"]}
 invitems = list(invitems.keys())
 
 effects = {
-    'slipchance' : 0,
-    'heat'       : 0.05,
+    'slipchance' : 0, 
+    'heat'       : 0.05, 
     'stamina'    : 0.05
 }
 
-WIDTH, HEIGHT = 450, 800
 
 class Menu:
     def __init__(self, screen, clicked, pos, walkradius, normal, images):
@@ -72,9 +71,9 @@ class Menu:
         self.game_status = 'menu'
         self.effects = effects
 
-        #screen.blit(images['backpack'],(30,100))
-        show_text(screen,"PICK TWO",60,(WIDTH/2, HEIGHT/2-250), "white")
-        show_text(screen,"ITEMS",60,(WIDTH/2, HEIGHT/2-200), "white")
+        #screen.blit(images['backpack'], (30, 100))
+        show_text(screen, "PICK TWO", 30, (270/2, 230/2), "white")
+        show_text(screen, "ITEMS", 30, (270/2, 280/2), "white")
 
         for hexagon in hexagons:
             if hexagons.index(hexagon) in selected:
@@ -91,13 +90,13 @@ class Menu:
 
             # Displaying Hexagons
             pygame.draw.polygon(screen, color, hexagon, 0)
-            pygame.draw.polygon(screen, hexagon_outline_color, hexagon, 8)
+            pygame.draw.polygon(screen, hexagon_outline_color, hexagon, 4)
         
-        if pygame.Rect(WIDTH/2-100,585,200,50).collidepoint(pos):
-            pygame.draw.rect(screen, hexagon_hover_color, (WIDTH/2-100,585,200,50))
+        if pygame.Rect(170/2, 676/2, 200/2, 50/2).collidepoint(pos):
+            pygame.draw.rect(screen, hexagon_hover_color, (170/2, 676/2, 200/2, 50/2))
             if clicked == True and len(selected) == 2:
                 # Finding which perk based on which hexagon was selected
-                perks = invitems[selected[0]],invitems[selected[1]]
+                perks = invitems[selected[0]], invitems[selected[1]]
 
                 # Applying the perks
                 for perk in perks:
@@ -122,11 +121,11 @@ class Menu:
                 self.game_status = 'game'
                 self.effects = effects
 
-                #shadows[normal[0]] = shadow(normal[0],(22,22,22))
-                #shadows[normal[1]] = shadow(normal[1],(22,22,22))
+                #shadows[normal[0]] = shadow(normal[0], (22, 22, 22))
+                #shadows[normal[1]] = shadow(normal[1], (22, 22, 22))
             
         else:
-            pygame.draw.rect(screen, hexagon_default_color, (WIDTH/2-100,585,200,50))
-        show_text(screen,'DONE',50,(WIDTH/2,610),'white')
+            pygame.draw.rect(screen, hexagon_default_color, (170/2, 676/2, 200/2, 50/2))
+        show_text(screen, 'DONE', 25, (270/2, 700/2), 'white')
 
-        screen.blit(images['perks'],(0, -60))
+        screen.blit(images['perks'], (44/2, 22/2))
