@@ -1,6 +1,7 @@
 import pygame, math, random
 from _platforms import Platforms
 from _menu import Menu
+import os
 
 # Initialize Pygame
 pygame.init()
@@ -37,51 +38,23 @@ def shadow(image, shadowc):
     image.unlock()
     return image
 
+# Get a list of file names
+files = os.listdir('images')
+images = {}
 
-images = {
-'log1' : pygame.image.load('images/log_1.png'), 
-'log2' : pygame.image.load('images/log_2.png'), 
-'rock' : pygame.image.load('images/rock.png'), 
-'rock1' : pygame.image.load('images/rock_1.png'), 
-'rock2' : pygame.image.load('images/rock_2.png'), 
-#'big_boulder' : pygame.image.load('images/big_boulder.png'), 
-'stick' : pygame.image.load('images/stick.png'), 
-'fstick' : pygame.transform.flip(pygame.image.load('images/stick.png'), True, False), 
+for file in files: images[file.replace('.png','')] = pygame.image.load(f'images/{file}')
 
-'grass' : pygame.image.load('images/grass.png'), 
-'shading' : pygame.image.load('images/shading.png'), 
-'fshading' : pygame.transform.flip(pygame.image.load('images/shading.png'), True, False), 
-'shading_2' : pygame.image.load('images/shading_2.png'), 
-'shading_3' : shadow(pygame.image.load('images/shading_2.png'),(143,165,120)), 
-'bar' : pygame.image.load('images/bar.png'), 
-
-'sand' : pygame.image.load('images/sand.png'), 
-'sand_2' : pygame.image.load('images/sand_2.png'), 
-'sand_3' : pygame.image.load('images/sand_3.png'), 
-'sand_dollar' : pygame.image.load('images/sand_dollar.png'), 
-'starfish' : pygame.image.load('images/starfish.png'), 
-
-'boulder' : pygame.image.load('images/boulder.png'), 
-'boulder2' : pygame.image.load('images/boulder_2.png'), 
-'fboulder' : pygame.transform.flip(pygame.image.load('images/boulder.png'), True, False), 
-
-#'transition1' : pygame.image.load('images/transition_1.png'), 
-'transition2' : pygame.image.load('images/transition_2.png'), 
-'transition3' : pygame.image.load('images/transition_3.png'), 
-'transition4' : pygame.image.load('images/transition_4.png'), 
-'perks' : pygame.image.load('images/perks.png')
-}
+images['shading_3'] = shadow(pygame.image.load('images/shading_2.png'),(143,165,120)) 
 
 shadows = {
-    images['log1'] : shadow(images['log1'], (120, 165, 80)), 
-    images['log2'] : shadow(images['log2'], (120, 165, 80)), 
+    images['log_1'] : shadow(images['log_1'], (120, 165, 80)), 
+    images['log_2'] : shadow(images['log_2'], (120, 165, 80)), 
     images['boulder'] : shadow(images['boulder'], (76, 76, 76)), 
-    images['fboulder'] : shadow(images['fboulder'], (76, 76, 76)), 
-    images['boulder2'] : shadow(images['boulder2'], (76, 76, 76)), 
-    #images['big_boulder'] : shadow(images['big_boulder'], (76, 76, 76))
+    images['boulder_2'] : shadow(images['boulder_2'], (76, 76, 76)), 
     }
-    
 
+#for shadow1 in shadows.copy():
+#    shadows[pygame.transform.flip(shadow1, True, False)] = shadow(pygame.transform.flip(shadow1, True, False), (120, 165, 80))
 
 def closest_point_on_circle(pos, center, radius):
     dx = pos[0] - center[0]
@@ -100,9 +73,11 @@ def adjust_position_if_in_forbidden_circle(pos):
     return pos
 
 def show_text(text, size, location, color):
-    a1 = pygame.font.Font(None, size).render(text, True, color)
-    a2 = a1.get_rect(center=location) 
-    screen.blit(a1, a2)
+    size = round(size*0.65)
+    font = pygame.font.SysFont('lucidaconsole', size)
+    text_surface = font.render(text, True, color)
+    text_rect = text_surface.get_rect(center=location)
+    screen.blit(text_surface, text_rect)
 
 def damage_tint(surface, scale):
     a = min(255, max(0, round(255 * (1-scale))))
@@ -132,7 +107,8 @@ clicking = False
 twisted = False
 game_status = 'menu'
 
-biome = 'snowy'
+# Starting bome
+biome = 'boulder'
 biomeswitch = 30/2
 lastbiomeswitch = 0
 lastbiome = None
@@ -140,7 +116,7 @@ lastbiome = None
 platforms = []
 platforms = Platforms(platforms, images, biome)
 
-colors = {'bog':'#A8CA59', 'boulder':'#FDE9BE', 'snowy':'#E4FFFF', 'beach':'#FDE9BE'}
+colors = {'bog':'#ACC16A', 'boulder':'#FDE9BE', 'snowy':'#E4FFFF', 'beach':'#FDE9BE'}
 bgcolor = "gray"
 
 # Snowflake properties
@@ -251,7 +227,7 @@ while running:
         if speed < 0.1: speed = 0
         score += speed
 
-        platforms.update(speed, biome, [images['transition2'], images['transition3'],images['transition4'], shadows[normal[0]], shadows[normal[1]]])
+        platforms.update(speed, biome, [images['transition_2'], images['transition_3'],images['transition_4'], shadows[normal[0]], shadows[normal[1]]])
         platforms.render(screen, shadows, images)  
         platforms.collision_check(feet, walkradius, clicking)
         collisions = platforms.collisions
@@ -343,7 +319,9 @@ while running:
         show_text(str(current_biome), 20, (490/2, 930/2), "black")
 
         # Displaying score
+        show_text(str(int(score/50)), 38, (274/2, 39/2), "black")
         show_text(str(int(score/50)), 38, (270/2, 35/2), "white")
+        
         
         # You die if you run out of stamina or your feet are off the screen
         if stamina <= 0 or feet[0][1] - 20 > HEIGHT/2 or feet[1][1] - 20 > HEIGHT/2:   

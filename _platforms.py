@@ -1,7 +1,12 @@
 import random, math, pygame
 
-#THIS IS A PART OF _CLEAN.PY - AN ATTEMPT TO CLEAN UP THE CODE IN HIKING.PY   
 
+def image_variety(images, key):
+    original = images[key]
+    flipped = pygame.transform.flip(original, True, False)
+
+    return random.choice([original, flipped])
+    
 def rect_circle_intersect(rect, circle_center, circle_radius):
     #Check if any corner of the rectangle is inside the circle
     corners = [
@@ -31,8 +36,6 @@ def circles_intersect(circle1_pos, circle1_radius, circle2_pos, circle2_radius):
     else:
         return False
 
-log1 = pygame.image.load('images/log_1.png')
-
 class Platform:
     def __init__(self, biome, radius, pos, img, timer):
         self.biome = biome
@@ -41,12 +44,12 @@ class Platform:
             self.radius = radius
 
         elif type(radius) == list:
-            self.radius = [radius[0]/2,radius[1]/2]
+            self.radius = [radius[0]/2, radius[1]/2]
 
         else:
             self.radius = radius/2
 
-        self.pos = [pos[0]/2,pos[1]/2]
+        self.pos = [pos[0]/2, pos[1]/2]
         self.img = img
         self.timer = timer
 
@@ -65,7 +68,7 @@ class Platform:
             #if self.biome == 'boulder':
             self.img.set_alpha(256)
 
-            if self.img == images['log1']:
+            if self.img == images['log_1']:
                 
                 screen.blit(shadows[self.img], (self.pos[0]-16, self.pos[1]+3))
                 screen.blit(self.img, (self.pos[0]-16, self.pos[1]))
@@ -104,61 +107,65 @@ class Platforms:
 
         # Generating platforms based on the biome
         if new_biome == 'boulder':
-            self.platforms.append(Platform('boulder', None, [0, -1400], images['transition4'], 0))
+            self.platforms.append(Platform('boulder', None, [0, -1400], images['transition_4'], 0))
 
             for i in range(26):
                 x = random.randint(0, 490)
                 y = i*50 - 1800
-                randomchoice = random.randint(0, 2)
-                self.platforms.append(Platform('boulder', ([56, 56, 45][randomchoice]), (x, y), [images['boulder'], 
-                images['fboulder'], images['boulder2']][randomchoice], 0))
+                randomchoice = random.randint(0, 1)
+                self.platforms.append(Platform('boulder', ([56, 45][randomchoice]), (x, y), [images['boulder'], images['boulder_2']][randomchoice], 0))
 
             for _ in range(25):
                 x = random.randint(0, 520)
                 y = random.randint(-400, 960) - 1350
-                self.platforms.append(Platform('boulder', None, (x, y), 
-                random.choices([images['sand'], images['sand_2'], images['sand_3'], images['sand_dollar'], images['starfish']], weights=[29, 29, 29, 4, 9])[0], 0))
+                
+                selected_image = image_variety(images, random.choices(['sand', 'sand_2', 'sand_3', 'sand_dollar', 'starfish'], weights=[29, 29, 29, 4, 9])[0])
+                self.platforms.append(Platform('beach', None, (x, y), selected_image, 0))
 
         elif new_biome == 'bog':
-            self.platforms.append(Platform('bog', None, (0, -1400), images['transition3'], 0))
+            self.platforms.append(Platform('bog', None, (0, -1400), images['transition_3'], 0))
 
             for i in range(8):
                 if random.randint(0, 1) == 0: x = random.randint(0, 100)
                 else: x = random.randint(250, 500)
                 y = i*120-1400
-                self.platforms.append(Platform('bog', [100, 20], [x, y], images['log2'], 0))
+                self.platforms.append(Platform('bog', [100, 20], [x, y], images['log_2'], 0))
 
             for i in range(1, 3):
                 x = random.randint(150, 200)
                 y = i*600-2100
-                self.platforms.append(Platform('bog', [90, 400], [x, y], images['log1'], 0))
+                self.platforms.append(Platform('bog', [90, 400], [x, y], images['log_1'], 0))
             
             for _ in range(45):
                 x = random.randint(0, 520)
                 y = random.randint(-400, 960) - 1350
-                self.platforms.append(Platform('bog', None, (x, y), random.choice([images['grass'], images['grass'], images['grass'], images['shading'], images['shading_2'], images['shading_3'], images['fshading'], images['rock']]), 0))
+
+                selected_image = image_variety(images, random.choices(['grass', 'shading', 'shading_2', 'shading_3', 'rock'], weights=[3,1,1,1,1])[0])
+                self.platforms.append(Platform('bog', None, (x, y), selected_image, 0))
         
         elif new_biome == 'snowy':
-            self.platforms.append(Platform('snowy', None, (0, -1400), images['transition2'], 0))
+            self.platforms.append(Platform('snowy', None, (0, -1400), images['transition_2'], 0))
             for _ in range(6):
                 x = random.randint(0, 520)
                 y = random.randint(-400, 960) - 1350
-                self.platforms.append(Platform('snowy', None, (x, y), random.choice([images['rock2'], images['rock1'], images['stick'], images['fstick']]), 0))
+
+                selected_image = image_variety(images, random.choice(['rock_1', 'rock_2', 'stick']))
+                self.platforms.append(Platform('snowy', None, (x, y), selected_image, 0))
         
         elif new_biome == 'beach':
-            self.platforms.append(Platform('beach', None, (0, -1400), images['transition4'], 0))
+            self.platforms.append(Platform('beach', None, (0, -1400), images['transition_4'], 0))
             for _ in range(25):
-                x = random.randint(0, 400)
+                x = random.randint(0, 520)
                 y = random.randint(-400, 960) - 1350
-                self.platforms.append(Platform('beach', None, (x, y), 
-                random.choices([images['sand'], images['sand_2'], images['sand_3'], images['sand_dollar'], images['starfish']], weights=[29, 29, 29, 4, 9])[0], 0))
+
+                selected_image = image_variety(images, random.choices(['sand', 'sand_2', 'sand_3', 'sand_dollar', 'starfish'], weights=[29, 29, 29, 4, 9])[0])
+                self.platforms.append(Platform('beach', None, (x, y), selected_image, 0))
 
     def update(self, speed, biome, banned):
         for platform in self.platforms[::-1]:
             platform.update(speed, biome, self.platforms, banned)
     
     def render(self, screen, shadows, images):
-
         # Rendering the decorations first
         for platform in self.platforms:
             if platform.radius == None:

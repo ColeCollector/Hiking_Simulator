@@ -1,10 +1,12 @@
 import pygame, math
 
 # Display Text
-def show_text(screen, text, size, location, color):
-    a1 = pygame.font.Font(None, size).render(text, True, color)
-    a2 = a1.get_rect(center=location) 
-    screen.blit(a1, a2)
+def show_text(screen,text, size, location, color):
+    size = round(size*0.65)
+    font = pygame.font.SysFont('lucidaconsole', size)
+    text_surface = font.render(text, True, color)
+    text_rect = text_surface.get_rect(center=location)
+    screen.blit(text_surface, text_rect)
 
 # Calculate the vertices of a hexagon
 def calculate_hexagon_vertices(center, size):
