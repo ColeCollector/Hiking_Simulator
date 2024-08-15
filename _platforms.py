@@ -85,7 +85,11 @@ class Platform:
 
             if self.radius != None:
                 if self.img not in shadows:
-                    shadows[self.img] = shadow(self.img, (120, 165, 80))
+                    if self.biome == 'boulder':
+                        shadows[self.img] = shadow(self.img, (76, 76, 76))
+                    else:
+                        shadows[self.img] = shadow(self.img, (120, 165, 80))
+                        
                 screen.blit(shadows[self.img], (self.pos[0] - offset, self.pos[1]+3))
             
             screen.blit(self.img, (self.pos[0] - offset, self.pos[1]))

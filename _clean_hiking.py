@@ -159,7 +159,7 @@ while running:
 
             if game_status == 'game':
                 sounds[1].play()
-                speed = (450 - max(feet[0][1], feet[1][1]))/15 + 4
+                speed = (450 - max(feet[0][1], feet[1][1]))/15 + 7
                 if locked != -1:  # If a foot is locked
                     pos = adjust_position_if_in_forbidden_circle(pos)
                     feet[locked] = list(pos)
@@ -237,7 +237,6 @@ while running:
             foot[1] += speed
             
             pygame.draw.circle(screen, pygame.Color("white"), foot, walkradius[i] + 1, 1)
-            pygame.draw.circle(screen, pygame.Color(bgcolor), foot, walkradius[i] * 0.8)
             screen.blit(normal[i], (foot[0]-38, foot[1]-38))
 
             if True not in collisions[i] and current_biome != None:
@@ -301,9 +300,6 @@ while running:
             # Fading the red away
             scale -= 2
 
-        # Draw the forbidden circle
-        #pygame.draw.circle(screen, pygame.Color("red"), forbidden_center, forbidden_radius, 2)
-        
         # Draw the position circle
         pygame.draw.circle(screen, pygame.Color("red"), pos, 20/2)
         
@@ -315,7 +311,6 @@ while running:
         pygame.draw.rect(screen, "#AFAFAF", (118/2, 108/2, 304/2, 24/2))
         pygame.draw.rect(screen, "#E00000", (120/2, 110/2, heat/2, 20/2))
         screen.blit(images['bar'], (72/2, 58/2))
-
         show_text(str(round(heat))+"/300", 14, (226/2, 152/2), "white")
 
         # Displaying biome in bottom right (for testing)
@@ -324,10 +319,9 @@ while running:
         # Displaying score
         show_text(str(int(score/50)), 38, (274/2, 39/2), "black")
         show_text(str(int(score/50)), 38, (270/2, 35/2), "white")
-        
-        
+
         # You die if you run out of stamina or your feet are off the screen
-        if stamina <= 0 or feet[0][1] > HEIGHT/2 or feet[1][1] > HEIGHT/2:   
+        if stamina <= 0 or feet[0][1] > HEIGHT/2 or feet[1][1] > HEIGHT/2 or transition == 70:   
             transition = min(70, transition + 1)
             dead += 1
 
