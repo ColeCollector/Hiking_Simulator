@@ -1,7 +1,7 @@
 import pygame, math
 
 # Display Text
-def show_text(screen,text, size, location, color):
+def show_text(screen, text, size, location, color):
     size = round(size*0.65)
     font = pygame.font.SysFont('lucidaconsole', size)
     text_surface = font.render(text, True, color)
@@ -38,23 +38,31 @@ def point_in_polygon(point, vertices):
 bg_color = '#0B1911'
 hexagon_default_color = '#304D30'
 hexagon_hover_color = '#387738'
-hexagon_selected_color = '#EEF0E5'
-hexagon_outline_color = '#163020'
+hexagon_selected_color = '#EDE9E3'
+hexagon_selected_outline = '#E8AF66'
+hexagon_default_outline = '#163020'
 
 # Hexagon properties
 hexagons = []
 selected = []
+circles = []
 
 for i in range(2):
-    vertices = calculate_hexagon_vertices(((i*180 + 180)/2, 428/2), 26)
+    coords = (i*116 + 77, 213)
+    circles.append(coords)
+    vertices = calculate_hexagon_vertices(coords, 35)
     hexagons.append(vertices)
 
 for i in range(2):
-    vertices = calculate_hexagon_vertices(((i*180 + 180)/2, 532/2), 26)
+    coords = (i*116 + 77, 281)
+    circles.append(coords)
+    vertices = calculate_hexagon_vertices(coords, 35)
     hexagons.append(vertices)
 
 for i in range(3):
-    vertices = calculate_hexagon_vertices((270/2, (378 + 104*i)/2), 26)
+    coords = (135, 179 + 68*i)
+    circles.append(coords)
+    vertices = calculate_hexagon_vertices(coords, 35)
     hexagons.append(vertices)
 
 invitems = {"Water" : ["plastic bottle", "metal bottle", "water jug"], "Sleeping Bag":["light bag(10C)", "3 season bag(-5C)", "winter bag(-40)"], "Left Foot":["crocs", "hiking boots", "work boots"], "Right Foot":["crocs", "hiking boots", "work boots"], "Locked_1" : None, "Locked_2" : None, "Clothes":["no spare clothes", "an extra of everything", "7 days of clothes"]}
@@ -74,12 +82,14 @@ class Menu:
         self.effects = effects
 
         #screen.blit(images['backpack'], (30, 100))
-        show_text(screen, "PICK TWO", 30, (270/2, 230/2), "white")
-        show_text(screen, "ITEMS", 30, (270/2, 280/2), "white")
+        show_text(screen, "PICK TWO", 30, (270/2, 230/2-20), "white")
+        show_text(screen, "ITEMS", 30, (270/2, 280/2-20), "white")
 
         for hexagon in hexagons:
             if hexagons.index(hexagon) in selected:
                 color = hexagon_selected_color
+                outline = hexagon_selected_outline
+                
                 if clicked == True and point_in_polygon(pos, hexagon):
                     selected.remove(hexagons.index(hexagon))
                 
@@ -87,15 +97,19 @@ class Menu:
                 if clicked == True and len(selected) < 2:
                     selected.append(hexagons.index(hexagon))
                 color = hexagon_hover_color
+                outline = hexagon_default_outline
 
-            else: color = hexagon_default_color 
+            else: 
+                color = hexagon_default_color 
+                outline = hexagon_default_outline
 
             # Displaying Hexagons
             pygame.draw.polygon(screen, color, hexagon, 0)
-            pygame.draw.polygon(screen, hexagon_outline_color, hexagon, 4)
+            pygame.draw.polygon(screen, outline, hexagon, 5)
         
-        if pygame.Rect(170/2, 676/2, 200/2, 50/2).collidepoint(pos):
-            pygame.draw.rect(screen, hexagon_hover_color, (170/2, 676/2, 200/2, 50/2))
+        if pygame.Rect(170/2, 676/2+25, 200/2, 50/2).collidepoint(pos):
+            #pygame.draw.rect(screen, hexagon_hover_color, (170/2, 676/2, 200/2, 50/2))
+            screen.blit(images['button_hover'],(170/2, 676/2+25, 200/2, 50/2))
             if clicked == True and len(selected) == 2:
                 # Finding which perk based on which hexagon was selected
                 perks = invitems[selected[0]], invitems[selected[1]]
@@ -128,7 +142,13 @@ class Menu:
                 #shadows[normal[1]] = shadow(normal[1], (22, 22, 22))
             
         else:
-            pygame.draw.rect(screen, hexagon_default_color, (170/2, 676/2, 200/2, 50/2))
-        show_text(screen, 'DONE', 25, (270/2, 700/2), 'white')
+            #pygame.draw.rect(screen, hexagon_default_color, (170/2, 676/2, 200/2, 50/2))
+            screen.blit(images['button'],(170/2, 676/2+25, 200/2, 50/2))
+            
+        show_text(screen, 'DONE', 25, (270/2, 700/2+25), 'white')
 
-        screen.blit(images['perks'], (44/2, 22/2))
+
+        for circle in circles:
+            pygame.draw.circle(screen, hexagon_default_outline, circle, 12)
+
+        screen.blit(images['perks'], (0, 0))

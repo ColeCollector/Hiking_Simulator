@@ -13,10 +13,10 @@ screen = pygame.Surface((WIDTH/2, HEIGHT/2))
 clock = pygame.time.Clock()
 pygame.display.set_caption("Hiking Game")
 
-#backround audio
+# Backround audio
 pygame.mixer.music.load('sounds/ambience.wav')
-pygame.mixer.music.play(-1)
 pygame.mixer.music.set_volume(0.05)
+pygame.mixer.music.play(-1)
 
 sounds = [pygame.mixer.Sound('sounds/ow.wav'), pygame.mixer.Sound('sounds/jump.wav'), pygame.mixer.Sound('sounds/bone.mp3')]
 sounds[0].set_volume(0.1)
@@ -108,7 +108,7 @@ twisted = False
 game_status = 'menu'
 
 # Starting bome
-biome = 'boulder'
+biome = 'bog'
 biomeswitch = 30/2
 lastbiomeswitch = 0
 lastbiome = None
@@ -159,7 +159,7 @@ while running:
 
             if game_status == 'game':
                 sounds[1].play()
-                speed = (450-max(feet[0][1], feet[1][1]))/15
+                speed = (450 - max(feet[0][1], feet[1][1]))/15 + 4
                 if locked != -1:  # If a foot is locked
                     pos = adjust_position_if_in_forbidden_circle(pos)
                     feet[locked] = list(pos)
@@ -200,7 +200,7 @@ while running:
         if bgcolor != colors[biome] and (score/50 > lastbiomeswitch + 28/2):
             bgcolor = colors[biome]
 
-        if lastbiomeswitch+20/2 > score/50:
+        if lastbiomeswitch + 20/2 > score/50:
             current_biome = lastbiome
         else:
             current_biome = biome
@@ -235,8 +235,11 @@ while running:
 
         for i, foot in enumerate(feet):
             foot[1] += speed
-            screen.blit(normal[i], (foot[0]-38, foot[1]-38))
+            
             pygame.draw.circle(screen, pygame.Color("white"), foot, walkradius[i] + 1, 1)
+            pygame.draw.circle(screen, pygame.Color(bgcolor), foot, walkradius[i] * 0.8)
+            screen.blit(normal[i], (foot[0]-38, foot[1]-38))
+
             if True not in collisions[i] and current_biome != None:
 
                 if current_biome == 'snowy':
@@ -324,7 +327,7 @@ while running:
         
         
         # You die if you run out of stamina or your feet are off the screen
-        if stamina <= 0 or feet[0][1] - 20 > HEIGHT/2 or feet[1][1] - 20 > HEIGHT/2:   
+        if stamina <= 0 or feet[0][1] > HEIGHT/2 or feet[1][1] > HEIGHT/2:   
             transition = min(70, transition + 1)
             dead += 1
 
@@ -348,6 +351,12 @@ while running:
                 bgcolor = "gray"
                 score = 0
                 transition = -70
+                
+                biome = 'bog'
+                biomeswitch = 30/2
+                lastbiomeswitch = 0
+                lastbiome = None
+
                 platforms = []
                 platforms = Platforms(platforms, images, biome)
 

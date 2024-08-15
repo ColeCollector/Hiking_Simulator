@@ -1,5 +1,20 @@
 import random, math, pygame
 
+def shadow(image, shadowc):
+    image = image.convert_alpha()
+    imgwidth, imgheight = image.get_size()
+    image.lock()
+
+    # Iterate over each pixel
+    for x in range(imgwidth):
+        for y in range(imgheight):
+            color = image.get_at((x, y))
+            if color.a != 0:
+                image.set_at((x, y), shadowc + (color.a, ))
+
+    # Unlock the surface
+    image.unlock()
+    return image
 
 def image_variety(images, key):
     original = images[key]
@@ -43,11 +58,8 @@ class Platform:
         if radius == None:
             self.radius = radius
 
-        elif type(radius) == list:
-            self.radius = [radius[0]/2, radius[1]/2]
-
-        else:
-            self.radius = radius/2
+        elif type(radius) == list:self.radius = [radius[0]/2, radius[1]/2]
+        else: self.radius = radius/2
 
         self.pos = [pos[0]/2, pos[1]/2]
         self.img = img
@@ -65,24 +77,24 @@ class Platform:
         
     def render(self, screen, shadows, images):
         if self.timer == 0:
-            #if self.biome == 'boulder':
             self.img.set_alpha(256)
+            offset = 0
 
-            if self.img == images['log_1']:
-                
-                screen.blit(shadows[self.img], (self.pos[0]-16, self.pos[1]+3))
-                screen.blit(self.img, (self.pos[0]-16, self.pos[1]))
-                #pygame.draw.rect(screen, "red", (self.pos+self.radius))
+            if self.img in [images['log_1'], pygame.transform.flip(images['log_1'], True, False)]:
+                offset = 16
 
-            else:
-                if self.radius != None:
-                    screen.blit(shadows[self.img], (self.pos[0], self.pos[1]+3))
-                screen.blit(self.img, self.pos)
+            if self.radius != None:
+                if self.img not in shadows:
+                    shadows[self.img] = shadow(self.img, (120, 165, 80))
+                screen.blit(shadows[self.img], (self.pos[0] - offset, self.pos[1]+3))
+            
+            screen.blit(self.img, (self.pos[0] - offset, self.pos[1]))
             
         else:
             self.img.set_alpha(self.timer)
             screen.blit(self.img, self.pos)
             self.timer -= 1
+
 
     def collision_check(self, collisions, feet, walkradius):
         if self.radius != None:
@@ -129,12 +141,12 @@ class Platforms:
                 if random.randint(0, 1) == 0: x = random.randint(0, 100)
                 else: x = random.randint(250, 500)
                 y = i*120-1400
-                self.platforms.append(Platform('bog', [100, 20], [x, y], images['log_2'], 0))
+                self.platforms.append(Platform('bog', [100, 20], [x, y], image_variety(images, 'log_2'), 0))
 
             for i in range(1, 3):
                 x = random.randint(150, 200)
                 y = i*600-2100
-                self.platforms.append(Platform('bog', [90, 400], [x, y], images['log_1'], 0))
+                self.platforms.append(Platform('bog', [90, 400], [x, y], image_variety(images, 'log_1'), 0))
             
             for _ in range(45):
                 x = random.randint(0, 520)
