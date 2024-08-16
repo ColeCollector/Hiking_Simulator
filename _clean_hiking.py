@@ -42,19 +42,18 @@ def shadow(image, shadowc):
 files = os.listdir('images')
 images = {}
 
-for file in files: images[file.replace('.png','')] = pygame.image.load(f'images/{file}')
+for file in files: images[file.replace('.png', '')] = pygame.image.load(f'images/{file}')
+images['shading_3'] = shadow(pygame.image.load('images/shading_2.png'), (143, 165, 120)) 
 
-images['shading_3'] = shadow(pygame.image.load('images/shading_2.png'),(143,165,120)) 
+for image in images.copy():
+    images[f"{image}_flipped"] = pygame.transform.flip(images[image], True, False)
 
 shadows = {
     images['log_1'] : shadow(images['log_1'], (120, 165, 80)), 
     images['log_2'] : shadow(images['log_2'], (120, 165, 80)), 
-    images['boulder'] : shadow(images['boulder'], (76, 76, 76)), 
-    images['boulder_2'] : shadow(images['boulder_2'], (76, 76, 76)), 
+    images['boulder'] : shadow(images['boulder'], (2, 166, 255)), 
+    images['boulder_2'] : shadow(images['boulder_2'], (2, 166, 255)), 
     }
-
-#for shadow1 in shadows.copy():
-#    shadows[pygame.transform.flip(shadow1, True, False)] = shadow(pygame.transform.flip(shadow1, True, False), (120, 165, 80))
 
 def closest_point_on_circle(pos, center, radius):
     dx = pos[0] - center[0]
@@ -65,16 +64,20 @@ def closest_point_on_circle(pos, center, radius):
     closest_y = center[1] + dy * ratio
     return [closest_x, closest_y]
 
-def adjust_position_if_in_forbidden_circle(pos):
-    return pos
+def is_within_circle(pos, center, radius):
+    dx = pos[0] - center[0]
+    dy = pos[1] - center[1]
+    return dx * dx + dy * dy < radius * radius
 
-    if is_within_circle(pos, forbidden_center, forbidden_radius):
-        pos = closest_point_on_circle(pos, forbidden_center, forbidden_radius)
+def no_no_circle(pos):
+    for obstacle in obstacles:
+        if is_within_circle(pos, (obstacle[0] + 80, obstacle[1] + 80), 80):
+            pos = closest_point_on_circle(pos, (obstacle[0] + 80, obstacle[1] + 80), 80)
     return pos
 
 def show_text(text, size, location, color):
     size = round(size*0.65)
-    font = pygame.font.SysFont('lucidaconsole', size)
+    font = pygame.font.SysFont('segoeuiblack', size)
     text_surface = font.render(text, True, color)
     text_rect = text_surface.get_rect(center=location)
     screen.blit(text_surface, text_rect)
@@ -94,6 +97,7 @@ locked = -1
 #forbidden_center = [250, 400]
 #forbidden_radius = 100
 
+highscore = 0
 speed = 0 
 score = 0
 scale = 0
@@ -108,7 +112,7 @@ twisted = False
 game_status = 'menu'
 
 # Starting bome
-biome = 'bog'
+biome = 'boulder'
 biomeswitch = 30/2
 lastbiomeswitch = 0
 lastbiome = None
@@ -116,7 +120,7 @@ lastbiome = None
 platforms = []
 platforms = Platforms(platforms, images, biome)
 
-colors = {'bog':'#ACC16A', 'boulder':'#FDE9BE', 'snowy':'#E4FFFF', 'beach':'#FDE9BE'}
+colors = {'bog':'#ACC16A', 'boulder':'#5FD8FF', 'snowy':'#E4FFFF', 'beach':'#FDE9BE'}
 bgcolor = "gray"
 
 # Snowflake properties
@@ -141,14 +145,14 @@ while running:
     if game_status == 'game' and mouse_buttons[0]:  # If left mouse button is pressed
         if locked != -1:  # If a foot is locked
             pos = closest_point_on_circle(pos, feet[locked], walkradius[locked])
-            pos = adjust_position_if_in_forbidden_circle(pos)
+            pos = no_no_circle(pos)
 
         else:  # If no foot is locked
             distances = [math.hypot(pos[0] - foot[0], pos[1] - foot[1]) for foot in feet]
             if all(dist > walkradius[i] for i, dist in enumerate(distances)):
                 locked = distances.index(min(distances))
                 pos = closest_point_on_circle(pos, feet[locked], walkradius[locked])
-                pos = adjust_position_if_in_forbidden_circle(pos)
+                pos = no_no_circle(pos)
     
     for event in pygame.event.get():
         if event.type == pygame.QUIT:  # If the user closes the window
@@ -159,20 +163,20 @@ while running:
 
             if game_status == 'game':
                 sounds[1].play()
-                speed = (450 - max(feet[0][1], feet[1][1]))/15 + 7
+                speed = round((450 - max(feet[0][1], feet[1][1]))/15 + 6)
                 if locked != -1:  # If a foot is locked
-                    pos = adjust_position_if_in_forbidden_circle(pos)
+                    pos = no_no_circle(pos)
                     feet[locked] = list(pos)
                 else:
                     # Check if the position is within any foot's radius
                     if any(math.hypot(pos[0] - foot[0], pos[1] - foot[1]) <= walkradius[i] for i, foot in enumerate(feet)):
                         for i, foot in enumerate(feet):
                             if math.hypot(pos[0] - foot[0], pos[1] - foot[1]) <= walkradius[i]:
-                                pos = adjust_position_if_in_forbidden_circle(pos)
+                                pos = no_no_circle(pos)
                                 feet[i] = list(pos)
                                 break
                     else:  # Move the closest foot if the position is outside all radii
-                        pos = adjust_position_if_in_forbidden_circle(pos)
+                        pos = no_no_circle(pos)
                         feet[distances.index(min(distances))] = list(pos)
                 locked = -1  # Unlock the foot
                 feetdistance = math.sqrt((feet[1][0]-feet[0][0])**2 + (feet[1][1]-feet[0][1])**2)
@@ -227,9 +231,10 @@ while running:
         if speed < 0.1: speed = 0
         score += speed
 
-        platforms.update(speed, biome, [images['transition_2'], images['transition_3'],images['transition_4'], shadows[normal[0]], shadows[normal[1]]])
+        platforms.update(speed, biome, [images['transition_2'], images['transition_3'], images['transition_4'], shadows[normal[0]], shadows[normal[1]]])
         platforms.render(screen, shadows, images)  
         platforms.collision_check(feet, walkradius, clicking)
+        obstacles = platforms.obstacles
         collisions = platforms.collisions
 
 
@@ -301,24 +306,33 @@ while running:
             scale -= 2
 
         # Draw the position circle
-        pygame.draw.circle(screen, pygame.Color("red"), pos, 20/2)
+        pygame.draw.circle(screen, 'red', pos, 20/2)
         
         # Stamina bar
-        pygame.draw.rect(screen, "#133672", (118/2, 68/2, 304/2, 24/2))
-        pygame.draw.rect(screen, "#2B95FF", (120/2, 70/2, stamina/2, 20/2))
+        pygame.draw.rect(screen, "#133672", (118/2, 68/2+10, 304/2, 24/2))
+        pygame.draw.rect(screen, "#2B95FF", (120/2, 70/2+10, stamina/2, 20/2))
 
         # Heat bar
-        pygame.draw.rect(screen, "#AFAFAF", (118/2, 108/2, 304/2, 24/2))
-        pygame.draw.rect(screen, "#E00000", (120/2, 110/2, heat/2, 20/2))
-        screen.blit(images['bar'], (72/2, 58/2))
-        show_text(str(round(heat))+"/300", 14, (226/2, 152/2), "white")
-
+        pygame.draw.rect(screen, "#AFAFAF", (118/2, 108/2+10, 304/2, 24/2))
+        pygame.draw.rect(screen, "#E00000", (120/2, 110/2+10, heat/2, 20/2))
+        screen.blit(images['bar'], (72/2, 58/2+10))
+        show_text(str(round(heat))+" / 300", 14, (226/2, 152/2+10), "white")
+        
         # Displaying biome in bottom right (for testing)
         show_text(str(current_biome), 20, (490/2, 930/2), "black")
 
+        screen.blit(images['highscore'], (2, 14))
+
+        # Outlined Highscore text
+        show_text(str(highscore), 20, (28, 23), 'black')
+        show_text(str(highscore), 20, (30, 23), 'black')
+        show_text(str(highscore), 20, (28, 21), 'black')
+        show_text(str(highscore), 20, (30, 21), 'black')
+        show_text(str(highscore), 20, (29, 22), 'white')
+
         # Displaying score
-        show_text(str(int(score/50)), 38, (274/2, 39/2), "black")
-        show_text(str(int(score/50)), 38, (270/2, 35/2), "white")
+        show_text(str(int(score/50)), 38, (274/2, 39/2+4), "black")
+        show_text(str(int(score/50)), 38, (270/2, 35/2+4), "white")
 
         # You die if you run out of stamina or your feet are off the screen
         if stamina <= 0 or feet[0][1] > HEIGHT/2 or feet[1][1] > HEIGHT/2 or transition == 70:   
@@ -343,6 +357,10 @@ while running:
                 heat = 150
                 feet = [[170/2, 700/2], [370/2, 700/2]]
                 bgcolor = "gray"
+
+                if highscore < score:
+                    highscore = round(score/50)
+
                 score = 0
                 transition = -70
                 
@@ -350,6 +368,7 @@ while running:
                 biomeswitch = 30/2
                 lastbiomeswitch = 0
                 lastbiome = None
+                twisted = False
 
                 platforms = []
                 platforms = Platforms(platforms, images, biome)

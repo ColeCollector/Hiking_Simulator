@@ -3,7 +3,7 @@ import pygame, math
 # Display Text
 def show_text(screen, text, size, location, color):
     size = round(size*0.65)
-    font = pygame.font.SysFont('lucidaconsole', size)
+    font = pygame.font.SysFont('segoeuiblack', size)
     text_surface = font.render(text, True, color)
     text_rect = text_surface.get_rect(center=location)
     screen.blit(text_surface, text_rect)
@@ -44,7 +44,7 @@ hexagon_default_outline = '#163020'
 
 # Hexagon properties
 hexagons = []
-selected = {0:0, 1:0 ,2:0 ,3:0 ,4:0 ,5:0 ,6:0}
+selected = {0:0, 1:0 , 2:0 , 3:0 , 4:0 , 5:0 , 6:0}
 circles = []
 
 for i in range(2):
@@ -120,7 +120,7 @@ class Menu:
         
         if pygame.Rect(170/2, 676/2+25, 200/2, 50/2).collidepoint(pos):
             #pygame.draw.rect(screen, hexagon_hover_color, (170/2, 676/2, 200/2, 50/2))
-            screen.blit(images['button_hover'],(170/2, 676/2+25, 200/2, 50/2))
+            screen.blit(images['button_hover'], (170/2, 676/2+25, 200/2, 50/2))
             if clicked == True and sum(selected.values()) == 2:
                 # Finding which perk based on which hexagon was selected
                 perks = {key: value for key, value in selected.items() if value != 0}
@@ -132,18 +132,26 @@ class Menu:
 
                     if perk == 'Left Foot':
                         walkradius[0] += 2 * strength
-                        if strength == 1: normal[0] = pygame.transform.flip(pygame.image.load('images/croc.png'), True, False)
-                        elif strength == 2: normal[0] = pygame.transform.flip(pygame.image.load('images/boot.png'), True, False)
+                        if strength == 1: 
+                            normal[0] = pygame.transform.flip(pygame.image.load('images/croc.png'), True, False)
+                            effects['slipchance'] += 1
+
+                        elif strength == 2: 
+                            normal[0] = pygame.transform.flip(pygame.image.load('images/boot.png'), True, False)
 
                     elif perk == 'Right Foot':
                         walkradius[1] += 2 * strength
-                        if strength == 1: normal[1] = pygame.image.load('images/croc.png')
-                        elif strength == 2: normal[1] = pygame.image.load('images/boot.png')
-                        effects['slipchance'] += 1
+                        if strength == 1: 
+                            normal[1] = pygame.image.load('images/croc.png')
+                            effects['slipchance'] += 1
 
+                        elif strength == 2: 
+                            normal[1] = pygame.image.load('images/boot.png')
+                        
                     elif perk == 'Water':
-                        walkradius[1] -= 3 * strength
-                        effects['stamina'] -= 0.01 * strength
+                        walkradius[0] -= 2 * strength
+                        walkradius[1] -= 2 * strength
+                        effects['stamina'] += 0.02 * strength
 
                     elif perk == 'Clothes':
                         effects['heat'] -= 0.02 * strength
@@ -159,7 +167,7 @@ class Menu:
             
         else:
             #pygame.draw.rect(screen, hexagon_default_color, (170/2, 676/2, 200/2, 50/2))
-            screen.blit(images['button'],(170/2, 676/2+25, 200/2, 50/2))
+            screen.blit(images['button'], (170/2, 676/2+25, 200/2, 50/2))
             
         show_text(screen, 'DONE', 25, (270/2, 700/2+25), 'white')
 
