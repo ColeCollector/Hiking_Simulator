@@ -1,20 +1,5 @@
 import random, math, pygame
-
-def shadow(image, shadowc):
-    image = image.convert_alpha()
-    imgwidth, imgheight = image.get_size()
-    image.lock()
-
-    # Iterate over each pixel
-    for x in range(imgwidth):
-        for y in range(imgheight):
-            color = image.get_at((x, y))
-            if color.a != 0:
-                image.set_at((x, y), shadowc + (color.a, ))
-
-    # Unlock the surface
-    image.unlock()
-    return image
+from _utils import shadow
 
 def image_variety(images, key):
     original = images[key]
@@ -68,9 +53,9 @@ class Platform:
     def update(self, speed, biome, platforms, banned):
         self.pos[1] += speed
 
-        if self.pos[1] > 960:
+        if self.pos[1] > 480:
             if self.biome == biome and self.img not in banned:
-                self.pos[1] = - 400/2
+                self.pos[1] = -200
                 self.timer = 0
             else: 
                 platforms.remove(self)
@@ -86,7 +71,7 @@ class Platform:
             if self.radius != None:
                 if self.img not in shadows:
                     if self.biome == 'boulder':
-                        shadows[self.img] = shadow(self.img, (2, 166, 255))
+                        shadows[self.img] = shadow(self.img, (0, 219, 204))
                     else:
                         shadows[self.img] = shadow(self.img, (120, 165, 80))
                         
@@ -127,15 +112,29 @@ class Platforms:
         # Generating platforms based on the biome
         if new_biome == 'boulder':
             self.platforms.append(Platform('boulder', None, [0, -1400], images['transition_1'], 0))
+            avoid = []
 
             for i in range(26):
                 x = random.randint(0, 490)
                 y = i*50 - 1800
-                randomchoice = random.randint(0, 1)
-                self.platforms.append(Platform('boulder', [56, 45][randomchoice], (x, y), [images['boulder'], images['boulder_2']][randomchoice], 0))
+                rand = random.randint(0, 1)
 
-            for i in range(2):
-                self.platforms.append(Platform('boulder', 80, [100, 500 - 1350, 200], images['big_boulder'], 0))
+                self.platforms.append(Platform('boulder', [56, 45][rand], (x, y), [images['boulder'], images['boulder_2']][rand], 0))
+                avoid.append([[x, y], [56, 45][rand]])
+
+            self.platforms.append(Platform('boulder', 80, [100, 500 - 1350], images['big_boulder'], 0))
+            avoid.append([[100, 500 - 1350], 80])
+
+            for _ in range(10):
+
+                while True:
+                    x = random.randint(0, 520)
+                    y = random.randint(-350, 960) - 1400
+
+                    if not any(circles_intersect([item[0][0]+item[1],item[0][1]+item[1]], item[1], [x, y], 38) for item in avoid):
+                        break
+                avoid.append([[x, y], 38])
+                self.platforms.append(Platform('boulder', None, (x, y), image_variety(images, random.choice(['green_lily', 'lily', 'flower_lily'])), 0))
 
         elif new_biome == 'bog':
             self.platforms.append(Platform('bog', None, (0, -1400), images['transition_3'], 0))
@@ -196,7 +195,7 @@ class Platforms:
 
         self.obstacles = obstacles
 
-    def collision_check(self, feet, walkradius, clicked):
+    def collision_check(self, feet, walkradius, clicked, slipchance):
         collisions = [[], []]
 
         for platform in self.platforms:
@@ -204,7 +203,7 @@ class Platforms:
         
         if clicked:
             # Randomly falling platforms
-            if random.randint(0, 5) == 0:
+            if random.randint(0, 6 - slipchance) == 0:
                 ontop = [i for sublist in collisions for i, value in enumerate(sublist) if value]
                 
                 # If we are ontop of a platform

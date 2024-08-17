@@ -1,12 +1,5 @@
 import pygame, math
-
-# Display Text
-def show_text(screen, text, size, location, color):
-    size = round(size*0.65)
-    font = pygame.font.SysFont('segoeuiblack', size)
-    text_surface = font.render(text, True, color)
-    text_rect = text_surface.get_rect(center=location)
-    screen.blit(text_surface, text_rect)
+from _utils import show_text
 
 # Calculate the vertices of a hexagon
 def calculate_hexagon_vertices(center, size):
@@ -65,13 +58,14 @@ for i in range(3):
     vertices = calculate_hexagon_vertices(coords, 35)
     hexagons.append(vertices)
 
-invitems = {"Water" : ["plastic bottle", "metal bottle", "water jug"], "Sleeping Bag":["light bag(10C)", "3 season bag(-5C)", "winter bag(-40)"], "Left Foot":["crocs", "hiking boots", "work boots"], "Right Foot":["crocs", "hiking boots", "work boots"], "Locked_1" : None, "Locked_2" : None, "Clothes":["no spare clothes", "an extra of everything", "7 days of clothes"]}
-invitems = list(invitems.keys())
+#invitems = {"Water" : ["plastic bottle", "metal bottle", "water jug"], "Knee-pad" : None, "Left Foot":["crocs", "hiking boots", "work boots"], "Right Foot":["crocs", "hiking boots", "work boots"], "Sleeping Bag":["light bag(10C)", "3 season bag(-5C)", "winter bag(-40)"], "Locked_2" : None, "Clothes":["no spare clothes", "an extra of everything", "7 days of clothes"]}
+invitems = ['Water', 'Knee Pad', 'Left Foot', 'Right Foot', 'Sleeping Bag', 'Locked', 'Clothes']
 
 effects = {
     'slipchance' : 0, 
     'heat'       : 0.05, 
-    'stamina'    : 0.05
+    'regen'      : 0.06, 
+    'stamina'    : 0.04
 }
 
 
@@ -82,8 +76,8 @@ class Menu:
         self.effects = effects
 
         #screen.blit(images['backpack'], (30, 100))
-        show_text(screen, "PICK TWO", 30, (270/2, 230/2-20), "white")
-        show_text(screen, "ITEMS", 30, (270/2, 280/2-20), "white")
+        show_text(screen, "PICK TWO", 30, (135, 95), "white")
+        show_text(screen, "ITEMS", 30, (135, 120), "white")
 
         for x, hexagon in enumerate(hexagons):
             if selected[x] == 2:
@@ -98,14 +92,14 @@ class Menu:
                 outline = hexagon_selected_outline
                 
                 if clicked == True and point_in_polygon(pos, hexagon):
-                    if sum(selected.values()) < 2:
+                    if sum(selected.values()) < 3:
                         selected[x] += 1
 
-                    elif sum(selected.values()) == 2:
+                    elif sum(selected.values()) == 3:
                         selected[x] -= 1
             
             elif point_in_polygon(pos, hexagon):
-                if clicked == True and sum(selected.values()) < 2:
+                if clicked == True and sum(selected.values()) < 3:
                     selected[x] += 1
                 color = hexagon_hover_color
                 outline = hexagon_default_outline
@@ -117,11 +111,13 @@ class Menu:
             # Displaying Hexagons
             pygame.draw.polygon(screen, color, hexagon, 0)
             pygame.draw.polygon(screen, outline, hexagon, 5)
+
+            pygame.draw.circle(screen, outline, circles[x], 12)
         
-        if pygame.Rect(170/2, 676/2+25, 200/2, 50/2).collidepoint(pos):
+        if pygame.Rect(85, 363, 100, 25).collidepoint(pos):
             #pygame.draw.rect(screen, hexagon_hover_color, (170/2, 676/2, 200/2, 50/2))
-            screen.blit(images['button_hover'], (170/2, 676/2+25, 200/2, 50/2))
-            if clicked == True and sum(selected.values()) == 2:
+            screen.blit(images['button_hover'], (85, 363, 100, 25))
+            if clicked == True and sum(selected.values()) == 3:
                 # Finding which perk based on which hexagon was selected
                 perks = {key: value for key, value in selected.items() if value != 0}
 
@@ -140,7 +136,7 @@ class Menu:
                             normal[0] = pygame.transform.flip(pygame.image.load('images/boot.png'), True, False)
 
                     elif perk == 'Right Foot':
-                        walkradius[1] += 2 * strength
+                        walkradius[1] += 3 * strength
                         if strength == 1: 
                             normal[1] = pygame.image.load('images/croc.png')
                             effects['slipchance'] += 1
@@ -151,28 +147,27 @@ class Menu:
                     elif perk == 'Water':
                         walkradius[0] -= 2 * strength
                         walkradius[1] -= 2 * strength
-                        effects['stamina'] += 0.02 * strength
+                        effects['regen'] += 0.02 * strength
 
                     elif perk == 'Clothes':
-                        effects['heat'] -= 0.02 * strength
+                        # First gives 80 % less damage from heat, 
+                        # Second gets rid of heat damage
+                        effects['heat'] -= min(0.04 * strength, 0.05)
+
+                    elif perk == 'Knee Pad':
+                        effects['stamina'] -= 0.005 * strength
 
                     elif perk == 'Sleeping Bag':
+                        # Gotta add something here...
                         pass
 
                 self.game_status = 'game'
                 self.effects = effects
-
-                #shadows[normal[0]] = shadow(normal[0], (22, 22, 22))
-                #shadows[normal[1]] = shadow(normal[1], (22, 22, 22))
             
         else:
             #pygame.draw.rect(screen, hexagon_default_color, (170/2, 676/2, 200/2, 50/2))
-            screen.blit(images['button'], (170/2, 676/2+25, 200/2, 50/2))
+            screen.blit(images['button'], (85, 363, 100, 25))
             
-        show_text(screen, 'DONE', 25, (270/2, 700/2+25), 'white')
-
-
-        for circle in circles:
-            pygame.draw.circle(screen, hexagon_default_outline, circle, 12)
+        show_text(screen, 'DONE', 25, (135, 375), 'white')
 
         screen.blit(images['perks'], (0, 0))
