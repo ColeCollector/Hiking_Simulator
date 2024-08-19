@@ -19,9 +19,14 @@ pygame.mixer.music.load('sounds/ambience.wav')
 pygame.mixer.music.set_volume(0.05)
 pygame.mixer.music.play(-1)
 
-sounds = [pygame.mixer.Sound('sounds/ow.wav'), pygame.mixer.Sound('sounds/jump.wav'), pygame.mixer.Sound('sounds/bone.mp3')]
+sounds = [pygame.mixer.Sound('sounds/ow.wav'), pygame.mixer.Sound('sounds/jump.wav'), pygame.mixer.Sound('sounds/bone.mp3'), 
+          pygame.mixer.Sound('sounds/splash.mp3'), pygame.mixer.Sound('sounds/snow.mp3')]
+
 sounds[0].set_volume(0.1)
 sounds[1].set_volume(0.2)
+sounds[2].set_volume(0.5)
+sounds[3].set_volume(0.1)
+sounds[4].set_volume(0.1)
 
 # Get a list of file names
 files = os.listdir('images')
@@ -33,12 +38,7 @@ images['shading_3'] = shadow(pygame.image.load('images/shading_2.png'), (143, 16
 for image in images.copy():
     images[f"{image}_flipped"] = pygame.transform.flip(images[image], True, False)
 
-shadows = {
-    images['log_1'] : shadow(images['log_1'], (120, 165, 80)), 
-    images['log_2'] : shadow(images['log_2'], (120, 165, 80)), 
-    images['boulder'] : shadow(images['boulder'], (0, 219, 204)), 
-    images['boulder_2'] : shadow(images['boulder_2'], (0, 219, 204)), 
-    }
+shadows = {}
 
 normal = [pygame.transform.flip(pygame.image.load('images/foot.png'), True, False), pygame.image.load('images/foot.png')]
 feet = [[85, 350], [185, 350]]
@@ -61,15 +61,15 @@ twisted = False
 game_status = 'menu'
 
 # Starting bome
-biome = 'snowy'
-biomeswitch = random.randint(30, 50)
+biome = 'boulder'
+biomeswitch = random.randint(25, 40)
 lastbiomeswitch = 0
 lastbiome = None
 
 platforms = []
 platforms = Platforms(platforms, images, biome)
 
-colors = {'bog':'#ACC16A', 'boulder':'#009F97', 'snowy':'#E4FFFF', 'beach':'#FDE9BE'}
+colors = {'bog':'#ACC16A', 'boulder':'#35A1E0', 'snowy':'#E4FFFF', 'beach':'#FDE9BE'}
 bgcolor = "gray"
 
 # Snowflake properties
@@ -111,7 +111,11 @@ while running:
             clicking = True
 
             if game_status == 'game' and mouse_buttons[0]:
-                sounds[1].play()
+                if current_biome != 'snowy':
+                    sounds[1].play()
+                else:
+                    sounds[4].play()
+
                 speed = (450 - max(feet[0][1], feet[1][1]))/15 + 6
                 if locked != -1:  # If a foot is locked
                     pos = no_no_circle(pos, obstacles)
@@ -170,7 +174,7 @@ while running:
             platforms = Platforms(platforms, images, biome)
 
             lastbiomeswitch = biomeswitch
-            biomeswitch += random.randint(30, 50)
+            biomeswitch += random.randint(25, 40)
 
         # Fill the screen with a color
         screen.fill(bgcolor)
@@ -207,6 +211,8 @@ while running:
                     stamina -= effects['stamina'] * 250
 
                 sounds[0].play()
+                if current_biome == 'boulder':
+                    sounds[3].play()
 
             elif current_biome != 'snowy':
                 stamina -= effects['stamina'] * 4
@@ -214,7 +220,7 @@ while running:
         elif twisted:
             stamina -= effects['stamina'] * 2
 
-        elif stamina < 300 and current_biome not in ['beach', 'snowy']:
+        elif stamina < 300 and current_biome not in ['snowy']:
             # Regeneration
             stamina += effects['regen']
 
@@ -262,7 +268,7 @@ while running:
         screen.blit(images['bar'], (36, 39))
 
         #-20 to 50
-        show_text(screen, str(round((heat-150)/3)) + "° C", 14, (113, 86), "white")
+        show_text(screen, str(round((heat-150)/3)) + " °C", 14, (113, 86), "white")
 
         # Displaying biome in bottom right (for testing)
         show_text(screen, str(current_biome), 20, (245, 465), "black")
@@ -312,7 +318,7 @@ while running:
                 transition = -70
                 
                 biome = 'bog'
-                biomeswitch = random.randint(15, 20)
+                biomeswitch = random.randint(25, 40)
                 lastbiomeswitch = 0
                 lastbiome = None
                 twisted = False

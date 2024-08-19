@@ -56,6 +56,7 @@ class Platform:
         if self.pos[1] > 480:
             if self.biome == biome and self.img not in banned:
                 self.pos[1] = -200
+                self.pos[0] = 270 - self.pos[0] 
                 self.timer = 0
             else: 
                 platforms.remove(self)
@@ -71,11 +72,15 @@ class Platform:
             if self.radius != None:
                 if self.img not in shadows:
                     if self.biome == 'boulder':
-                        shadows[self.img] = shadow(self.img, (0, 219, 204))
+                        shadows[self.img] = [shadow(self.img, (21, 113, 208)), shadow(self.img, (206, 225, 245))]
                     else:
                         shadows[self.img] = shadow(self.img, (120, 165, 80))
-                        
-                screen.blit(shadows[self.img], (self.pos[0] - offset, self.pos[1]+3))
+
+                if self.biome == 'boulder':
+                    screen.blit(shadows[self.img][0], (self.pos[0] - offset, self.pos[1]+6))
+                    screen.blit(shadows[self.img][1], (self.pos[0] - offset, self.pos[1]+1))
+                else:
+                    screen.blit(shadows[self.img], (self.pos[0] - offset, self.pos[1]+3))
                 
                 if self.img == images['big_boulder']:
                     obstacles.append(self.pos)
@@ -124,6 +129,11 @@ class Platforms:
 
             self.platforms.append(Platform('boulder', 80, [100, 500 - 1350], images['big_boulder'], 0))
             avoid.append([[100, 500 - 1350], 80])
+            
+            for _ in range(10):
+                x = random.randint(0, 520)
+                y = random.randint(-350, 960) - 1400
+                self.platforms.append(Platform('boulder', None, (x, y), image_variety(images, random.choice(['bubbles_1', 'bubbles_2', 'bubbles_3','bubbles_4'])), 0))
 
             for _ in range(10):
 
@@ -134,7 +144,10 @@ class Platforms:
                     if not any(circles_intersect([item[0][0]+item[1],item[0][1]+item[1]], item[1], [x, y], 38) for item in avoid):
                         break
                 avoid.append([[x, y], 38])
+
                 self.platforms.append(Platform('boulder', None, (x, y), image_variety(images, random.choice(['green_lily', 'lily', 'flower_lily'])), 0))
+
+
 
         elif new_biome == 'bog':
             self.platforms.append(Platform('bog', None, (0, -1400), images['transition_3'], 0))
@@ -175,7 +188,7 @@ class Platforms:
                 x = random.randint(0, 520)
                 y = random.randint(-400, 960) - 1400
 
-                selected_image = image_variety(images, random.choices(['sand', 'sand_2', 'sand_3', 'sand_dollar', 'starfish'], weights=[29, 29, 29, 4, 9])[0])
+                selected_image = image_variety(images, random.choices(['sand', 'sand_2', 'sand_3', 'sand_dollar', 'starfish', 'dead_grass'], weights=[26, 26, 26, 4, 8, 10])[0])
                 self.platforms.append(Platform('beach', None, (x, y), selected_image, 0))
 
     def update(self, speed, biome, banned):
