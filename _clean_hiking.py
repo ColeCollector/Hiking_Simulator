@@ -32,8 +32,21 @@ sounds[4].set_volume(0.1)
 files = os.listdir('images')
 images = {}
 
-for file in files: images[file.replace('.png', '')] = pygame.image.load(f'images/{file}')
-images['shading_3'] = shadow(pygame.image.load('images/shading_2.png'), (143, 165, 120)) 
+for file in files:
+    if '.png' in file:
+        images[file.replace('.png', '')] = pygame.image.load(f'images/{file}')
+    else:
+        for item in os.listdir(f'images/{file}'):
+            images[item.replace('.png', '')] = pygame.image.load(f'images/{file}/{item}')
+
+'''
+folder = []
+for item in os.listdir(f'images/{file}'):
+    folder.append(pygame.image.load(f'images/{file}/{item}'))
+images[file] = folder
+'''
+
+#images['shading_3'] = shadow(pygame.image.load('images/shading_2.png'), (143, 165, 120)) 
 
 for image in images.copy():
     images[f"{image}_flipped"] = pygame.transform.flip(images[image], True, False)
@@ -116,7 +129,7 @@ while running:
                 else:
                     sounds[4].play()
 
-                speed = (450 - max(feet[0][1], feet[1][1]))/15 + 6
+                speed = (450 - max(feet[0][1], feet[1][1]))/15
                 if locked != -1:  # If a foot is locked
                     pos = no_no_circle(pos, obstacles)
                     feet[locked] = list(pos)
