@@ -82,7 +82,7 @@ lastbiome = None
 platforms = []
 platforms = Platforms(platforms, images, biome)
 
-colors = {'bog':'#ACC16A', 'boulder':'#35A1E0', 'snowy':'#E4FFFF', 'beach':'#FDE9BE'}
+colors = {'bog':'#ACC16A', 'boulder':'#158BA5', 'snowy':'#E4FFFF', 'beach':'#FDE9BE'}
 bgcolor = "gray"
 
 # Snowflake properties
@@ -210,6 +210,8 @@ while running:
             pygame.draw.circle(screen, pygame.Color("white"), foot, walkradius[i] + 1, 1)
             screen.blit(normal[i], (foot[0] - 38, foot[1] - 38))
 
+        for tree in platforms.trees:
+            screen.blit(tree[0],tree[1])
 
         if (not any(collisions[0]) or not any(collisions[1])) and current_biome not in ['beach', None]:
             if scale == 0:
@@ -269,7 +271,8 @@ while running:
             scale -= 2
 
         # Mouse Position Circle
-        pygame.draw.circle(screen, 'red', pos, 10)
+        pygame.draw.circle(screen, 'white', pos, 10, 1)
+        pygame.draw.circle(screen, 'white', pos, 2)
         
         # Stamina bar
         pygame.draw.rect(screen, "#133672", (59, 44, 152, 12))
@@ -306,7 +309,7 @@ while running:
 
         # You take damage if heat is too low or high
         elif heat <= 0 or heat >= 300:
-            stamina -= effects['stamina']*2
+            stamina -= effects['stamina'] * 2
         
         if transition < 0:
             transition += 1

@@ -75,7 +75,7 @@ class Platform:
             if self.radius != None:
                 if self.img not in shadows:
                     if self.biome == 'boulder':
-                        shadows[self.img] = [shadow(self.img, (21, 113, 208)), shadow(self.img, (206, 225, 245))]
+                        shadows[self.img] = [shadow(self.img, (13, 109, 135)), shadow(self.img, (206, 225, 245))]
                     else:
                         shadows[self.img] = shadow(self.img, (120, 165, 80))
 
@@ -139,18 +139,20 @@ class Platforms:
                 y = random.randint(-350, 960) - 1400
                 self.platforms.append(Platform('boulder', None, (x, y), image_variety(images, random.choice(['bubbles_1', 'bubbles_2', 'bubbles_3','bubbles_4'])), 0))
 
-            for _ in range(10):
+            amount = [50] * 2 + [38] * 3 + [25] * 8 + [16] * 10
+            lilypads = {50 : 'lily_1', 38: 'lily_2', 25: 'lily_3', 16: 'lily_4'}
 
-                while True:
+            for size in amount:
+                attempt = 0
+                while attempt < 50:
+                    attempt += 1
                     x = random.randint(0, 520)
                     y = random.randint(-350, 960) - 1400
 
-                    if not any(circles_intersect([item[0][0]+item[1],item[0][1] + item[1]], item[1], [x, y], 38) for item in avoid):
+                    if not any(circles_intersect([item[0][0] + item[1], item[0][1] + item[1]], item[1], [x + size, y + size], size + 5) for item in avoid):
+                        avoid.append([[x, y], 38])
+                        self.platforms.append(Platform('boulder', None, (x, y), image_variety(images, lilypads[size]), 0))
                         break
-                avoid.append([[x, y], 38])
-
-                self.platforms.append(Platform('boulder', None, (x, y), image_variety(images, random.choice(['green_lily', 'lily', 'flower_lily'])), 0))
-
 
 
         elif new_biome == 'bog':
@@ -212,15 +214,21 @@ class Platforms:
     
     def render(self, screen, shadows, images):
         obstacles = []
+        trees = []
+
         # Rendering the decorations first
         for platform in self.platforms:
-            if platform.radius == None:
+            if platform.img in [images['tree'], images["tree_flipped"]]:
+                trees.append([platform.img, platform.pos])
+
+            elif platform.radius == None:
                 platform.render(screen, shadows, images, obstacles)
 
         for platform in self.platforms:
-            if platform.radius != None:
+            if platform.radius != None and platform.img not in [images['tree'], images["tree_flipped"]]:
                 platform.render(screen, shadows, images, obstacles)
 
+        self.trees = trees
         self.obstacles = obstacles
 
     def collision_check(self, feet, walkradius, clicked, slipchance):
