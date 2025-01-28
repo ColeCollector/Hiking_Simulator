@@ -1,41 +1,29 @@
 # **Main Game Idea**
-A moble-ish (not fully mobile since its made with pygame) 2d game about walking along a trail with various terrains and obstacles. You can move your thumb to swing your two feet across the screen in order to navagate the terrain. Its a pixel art styled strategy/exploraton game. At the start of your journey you will choose what three items to bring along. Each item offers unique perks, but comes at the cost of being heavy which will impair your movement.
+A 2d game made using pygame about walking along a trail with various terrains and obstacles. You can move your thumb to swing your two feet across the screen in order to navigate the terrain. It's a pixel art styled strategy/exploration game. At the start of your journey, you will choose what three items to bring along. Each item offers unique perks, but comes at the cost of being heavy which will impair your movement. You will have to keep track of your stamina and temperature making sure to never run out of stamina and to stay at a proper temperature. My friend came up with a lot of the ideas in the game after being on a hiking trip in highschool though he did not implent anything into the game.
 
 
 ## **Game Mechanics**
-### Implemented:
--put thumb/pointer down and swipe to move foot to the necessary location.
+- Put thumb/pointer down and swipe to move foot to the necessary location.
 
--biomes with their own pros and cons.
+- Biomes with their own pros and cons.
 
--ui with backpack options: decide what to include in your pack.
+- Ui item selection: decide what to bring with you in your backpack.
 
--being too heavy makes it hard to jump and makes moving foot slower.
+- Being too heavy makes it hard to jump and makes moving foot slower.
 
-### Future Mechanic Ideas:
--occasional one time events like dinky bridges or a log walk section.
-
--occasional need for big jumps with swipes up and then catching it with the thumb movement.
-
--heat bar to measure health. problems if too hot or too cold(heat exhaustion, hypothermia).
-
--foot wetness can lead to mlre blisters and an increase in pain/discomfort.
-
--thirst bar that can lead to dehydration. need to decontaminate water if in creek. if you do not you have a chance of getting sick if you get water too often you can develop dehydration because you need to wait to decontaminate.
-
--instead of thirst bar, a stamina bar that goes down when you walk.
-
--add a chance of rain spawning which causes more and larger puddles, slipperier obstacles, heat goes down fast, especially when not moving.
+- A stamina bar that goes down when you walk.
+  
+- A heat bar that goes up or down depending on the biome.
 
 ## Items:
 
 | Item            | Function                                                                                               |
 |:---------------:|:------------------------------------------------------------------------------------------------------:|
-| Water Bottle    | - Stamina will refill faster <br> - Alternatively, you could click something at the top to drink water and refill stamina |
-| Shoes           | - Lets you walk further <br> - Some shoes could make you slip easier                                   |
-| Clothes         | - Protection from heat                                                                                 |
-| Sleeping Bag    | - Lets you skip nighttime                                                                              |
-| Tent            | - Nothing yet                                                                                          |
+| Water Bottle    | Stamina will refill faster <br>                                                                        |
+| Shoes           | Lets you walk further, though some shoes could make you slip easier                                    |
+| Clothes         | Protection from heat                                                                                   |
+| Sleeping Bag    | Lets you skip nighttime                                                                                |
+| Tent            | To be added in a later update                                                                          |
 
 
 ## Biomes
@@ -47,10 +35,29 @@ A moble-ish (not fully mobile since its made with pygame) 2d game about walking 
 | **obstacles?** | no         | no         | yes        | yes        |
 | **qualities**  | walk slower| slippery   | decor      | loose rocks|
 
-![bog](https://github.com/user-attachments/assets/36538487-b0f1-410c-b7db-706751faddec)
-![boulder](https://github.com/user-attachments/assets/818c54c1-4843-4f94-9556-c3c1a8cc92f3)
 
-### Future Biome Ideas:
+| Bog Biome      | Boulder Biome  |
+|-----------------|----------------|
+| ![bog](https://github.com/user-attachments/assets/36538487-b0f1-410c-b7db-706751faddec) | ![boulder](https://github.com/user-attachments/assets/818c54c1-4843-4f94-9556-c3c1a8cc92f3)|
+
+
+# Future update wishlist (not in the game yet):
+
+## New Mechanic Ideas:
+- Occasional one time events like dinky bridges or a log walk section.
+  
+- Occasional need for big jumps with swipes up and then catching it with the thumb movement.
+  
+- Foot wetness can lead to mlre blisters and an increase in pain/discomfort.
+  
+- Thirst bar that can lead to dehydration. need to decontaminate water if in creek. if you do not you have a chance of getting sick if you get water too often you can develop dehydration because you need to wait to decontaminate.
+  
+- A chance of rain occuring which causes more and larger puddles, slipperier obstacles, heat goes down fast, especially when not moving.
+  
+- Instead of the water bottle just making stamina increase faster, you could click something at the top to drink water and refill stamina.
+
+
+## New Biome Ideas:
 Seaside flats: 
 - a little wet throughout, 
 - can wet feet if not careful, 
