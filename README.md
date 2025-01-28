@@ -1,5 +1,5 @@
 # **Main Game Idea**
-A 2d game made using pygame about walking along a trail with various terrains and obstacles. You can move your thumb to swing your two feet across the screen in order to navigate the terrain. It's a pixel art styled strategy/exploration game. At the start of your journey, you will choose what three items to bring along. Each item offers unique perks, but comes at the cost of being heavy which will impair your movement. You will have to keep track of your stamina and temperature making sure to never run out of stamina and to stay at a proper temperature. My friend came up with a lot of the ideas in the game after being on a hiking trip in highschool though he did not implent anything into the game.
+A 2d game made using pygame about walking along a trail with various terrains and obstacles. You can move your thumb to swing your two feet across the screen in order to navigate the terrain. It's a pixel art styled strategy/exploration game. At the start of your journey, you will choose what three items to bring along. Each item offers unique perks, but comes at the cost of being heavy which will impair your movement. You will have to keep track of your stamina and temperature making sure to never run out of stamina and to stay at a proper temperature. All of the textures were created by myself except for the grass and flower textures which I credited below. My friend came up with a lot of the ideas in the game after being on a hiking trip in highschool though he did not implent anything into the game.
 
 
 ## **Game Mechanics**
@@ -40,6 +40,9 @@ A 2d game made using pygame about walking along a trail with various terrains an
 |-----------------|----------------|
 | ![bog](https://github.com/user-attachments/assets/36538487-b0f1-410c-b7db-706751faddec) | ![boulder](https://github.com/user-attachments/assets/818c54c1-4843-4f94-9556-c3c1a8cc92f3)|
 
+## Credits:
+The only pixel art not created by myself was the grass and flower textures from here:
+https://craftpix.net/freebies/free-village-pixel-tileset-for-top-down-defense/
 
 # Future update wishlist (not in the game yet):
 
