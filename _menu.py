@@ -76,8 +76,8 @@ class Menu:
         self.effects = effects
 
         #screen.blit(images['backpack'], (30, 100))
-        show_text(screen, "PICK TWO", 30, (138, 98), hexagon_default_color)
-        show_text(screen, "PICK TWO", 30, (135, 95), "white")
+        show_text(screen, "PICK THREE", 30, (138, 98), hexagon_default_color)
+        show_text(screen, "PICK THREE", 30, (135, 95), "white")
 
         show_text(screen, "ITEMS", 30, (138, 123), hexagon_default_color)
         show_text(screen, "ITEMS", 30, (135, 120), "white")
