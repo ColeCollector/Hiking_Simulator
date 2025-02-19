@@ -1,8 +1,7 @@
 import pygame, math, random
 from _platforms import Platforms
 from _menu import Menu
-import os
-from _utils import shadow, closest_point_on_circle, no_no_circle, show_text, damage_tint
+from _utils import closest_point_on_circle, avoid_obstacles, show_text, damage_tint, shadow
 
 # Initialize Pygame
 pygame.init()
@@ -10,7 +9,7 @@ pygame.init()
 # Screen Size
 WIDTH, HEIGHT = 540, 960
 display = pygame.display.set_mode((WIDTH, HEIGHT), 0, 32)
-screen = pygame.Surface((WIDTH/2, HEIGHT/2))
+screen = pygame.Surface((WIDTH / 2, HEIGHT / 2))
 clock = pygame.time.Clock()
 pygame.display.set_caption("Hiking Game")
 
@@ -28,49 +27,27 @@ sounds[2].set_volume(0.5)
 sounds[3].set_volume(0.1)
 sounds[4].set_volume(0.1)
 
-# Get a list of file names
-files = os.listdir('images')
-images = {}
+images = {'bar'       : pygame.image.load(f'images/UI/bar.png'),
+          'highscore' : pygame.image.load(f'images/UI/highscore.png'),
+          'foot_1'    : pygame.transform.flip(pygame.image.load('images/shoes/foot.png'), True, False),
+          'foot_2'    : pygame.image.load(f'images/shoes/foot.png')}
 
-for file in files:
-    if '.png' in file:
-        images[file.replace('.png', '')] = pygame.image.load(f'images/{file}')
-    else:
-        for item in os.listdir(f'images/{file}'):
-            images[item.replace('.png', '')] = pygame.image.load(f'images/{file}/{item}')
-
-'''
-folder = []
-for item in os.listdir(f'images/{file}'):
-    folder.append(pygame.image.load(f'images/{file}/{item}'))
-images[file] = folder
-'''
-
-#images['shading_3'] = shadow(pygame.image.load('images/shading_2.png'), (143, 165, 120)) 
-
-for image in images.copy():
-    images[f"{image}_flipped"] = pygame.transform.flip(images[image], True, False)
-
-shadows = {}
-
-normal = [pygame.transform.flip(pygame.image.load('images/foot.png'), True, False), pygame.image.load('images/foot.png')]
 feet = [[85, 350], [185, 350]]
 
 walkradius = [40, 40] 
-locked = -1
-
+selected = -1
 highscore = 0
 speed = 0 
 score = 0
 scale = 0
-dead = 0
+wet_feet = 0
+temp = 150
+stamina = 300
+clicking = False
 
 transition = -70
-heat = 150
-stamina = 300
+dead = 0
 
-clicking = False
-twisted = False
 game_status = 'menu'
 
 # Starting bome
@@ -78,11 +55,12 @@ biome = 'boulder'
 biomeswitch = random.randint(25, 40)
 lastbiomeswitch = 0
 lastbiome = None
+feetdistance = 0
 
 platforms = []
-platforms = Platforms(platforms, images, biome)
+platforms = Platforms(platforms, biome)
 
-colors = {'bog':'#ACC16A', 'boulder':'#158BA5', 'snowy':'#E4FFFF', 'beach':'#FDE9BE'}
+colors = {'bog':'#ACC16A', 'boulder':'#158BA5', 'snowy':'#E4FFFF', 'beach':'#FDE9BE', 'ladder' : '#282828'}
 bgcolor = "gray"
 
 # Snowflake properties
@@ -98,23 +76,24 @@ for _ in range(150):  # Number of snowflakes
 running = True
 
 while running:
-    pos = pygame.mouse.get_pos()  # Get current mouse position
-    pos = list(pos)
-    pos[0]/=2
-    pos[1]/=2
-    mouse_buttons = pygame.mouse.get_pressed()  # Get mouse button states
+    # Get mouse position and scale it down
+    pos = list(pygame.mouse.get_pos())
+    pos[0] /= 2
+    pos[1] /= 2
+
+    mouse_buttons = pygame.mouse.get_pressed()
     
     if game_status == 'game' and mouse_buttons[0]:  # If left mouse button is pressed
-        if locked != -1:  # If a foot is locked
-            pos = closest_point_on_circle(pos, feet[locked], walkradius[locked])
-            pos = no_no_circle(pos, obstacles)
+        if selected != -1:  # If not foot is selected
+            pos = avoid_obstacles(closest_point_on_circle(pos, feet[selected], walkradius[selected]), obstacles, selected)
 
-        else:  # If no foot is locked
+        else:  # If a foot is selected
             distances = [math.hypot(pos[0] - foot[0], pos[1] - foot[1]) for foot in feet]
             if all(dist > walkradius[i] for i, dist in enumerate(distances)):
-                locked = distances.index(min(distances))
-                pos = closest_point_on_circle(pos, feet[locked], walkradius[locked])
-                pos = no_no_circle(pos, obstacles)
+                selected = distances.index(min(distances))
+                pos = closest_point_on_circle(pos, feet[selected], walkradius[selected])
+            pos = avoid_obstacles(pos, obstacles, selected)
+
     
     for event in pygame.event.get():
         if event.type == pygame.QUIT:  # If the user closes the window
@@ -124,67 +103,40 @@ while running:
             clicking = True
 
             if game_status == 'game' and mouse_buttons[0]:
-                if current_biome != 'snowy':
-                    sounds[1].play()
-                else:
-                    sounds[4].play()
 
-                speed = (450 - max(feet[0][1], feet[1][1]))/15
-                if locked != -1:  # If a foot is locked
-                    pos = no_no_circle(pos, obstacles)
-                    feet[locked] = list(pos)
-                else:
-                    # Check if the position is within any foot's radius
-                    if any(math.hypot(pos[0] - foot[0], pos[1] - foot[1]) <= walkradius[i] for i, foot in enumerate(feet)):
-                        for i, foot in enumerate(feet):
-                            if math.hypot(pos[0] - foot[0], pos[1] - foot[1]) <= walkradius[i]:
-                                pos = no_no_circle(pos, obstacles)
-                                feet[i] = list(pos)
-                                break
-                    else:  # Move the closest foot if the position is outside all radii
-                        pos = no_no_circle(pos, obstacles)
-                        feet[distances.index(min(distances))] = list(pos)
-                locked = -1  # Unlock the foot
+                sounds[1 if current_biome != 'snowy' else 4].play()
+                speed = (450 - max(feet[0][1], feet[1][1])) / 15
+
+                selected = -1  # Unselect the foot
                 feetdistance = math.sqrt((feet[1][0]-feet[0][0])**2 + (feet[1][1]-feet[0][1])**2)
-
-                # If feet are too far apart or left foot isnt on the left
-                if feet[0][0] > feet[1][0] or 325 < feetdistance: 
-                    twisted = True
-                    if scale == 0:
-                        scale = 100
-                    sounds[2].play()
-                    stamina -= effects['stamina']*100
-                    
-                else:
-                    twisted = False
+                feet[distances.index(min(distances))] = list(pos)
 
     if game_status == 'menu':
-        menu = Menu(screen, clicking, pos, walkradius, normal, images)
+        menu = Menu(screen, clicking, pos, walkradius, [images['foot_1'], images['foot_2']])
+
+        # Get the statistics chosen from menu
+        images['foot_1'] = menu.normal[0]
+        images['foot_2'] = menu.normal[1]
         game_status = menu.game_status
         effects = menu.effects
-        shadows[normal[0]] = shadow(normal[0], (160, 160, 160))
-        shadows[normal[1]] = shadow(normal[1], (160, 160, 160))
 
     elif game_status == 'game':
         # Changing the bg after the transition has past
-        if bgcolor != colors[biome] and (score/50 > lastbiomeswitch + 14):
+        if bgcolor != colors[biome] and (score / 50 > lastbiomeswitch + 14):
             bgcolor = colors[biome]
 
-        if lastbiomeswitch + 10 > score/50:
-            current_biome = lastbiome
-        else:
-            current_biome = biome
+        current_biome = lastbiome if lastbiomeswitch + 10 > score / 50 else biome
 
         # Switching biomes
-        if score/50 > biomeswitch:
+        if score / 50 > biomeswitch:
             lastbiome = biome
             
             # Chooses a random biome (other than the currentbiome)
-            biomes = ['bog', 'boulder', 'snowy', 'beach']
+            biomes = list(colors.keys())
             biomes.remove(biome)
             biome = random.choice(biomes)
 
-            platforms = Platforms(platforms, images, biome)
+            platforms = Platforms(platforms, biome)
 
             lastbiomeswitch = biomeswitch
             biomeswitch += random.randint(25, 40)
@@ -193,14 +145,13 @@ while running:
         screen.fill(bgcolor)
 
         # Giving a speed to all the objects so they move
-
-        speed -= speed/3
+        speed -= speed / 3
         if speed < 0.1: speed = 0
 
         score += speed
 
-        platforms.update(round(speed), biome, [images['transition_2'], images['transition_3'], images['transition_4'], shadows[normal[0]], shadows[normal[1]]])
-        platforms.render(screen, shadows, images)  
+        platforms.update(round(speed), biome)
+        platforms.render(screen)  
         platforms.collision_check(feet, walkradius, clicking, effects['slipchance'])
         obstacles = platforms.obstacles
         collisions = platforms.collisions
@@ -208,43 +159,65 @@ while running:
         for i, foot in enumerate(feet):
             foot[1] += round(speed)
             pygame.draw.circle(screen, pygame.Color("white"), foot, walkradius[i] + 1, 1)
-            screen.blit(normal[i], (foot[0] - 38, foot[1] - 38))
+            screen.blit(images[f'foot_{i + 1}'], (foot[0] - 38, foot[1] - 38))
+
+        p1, p2 = feet[0], feet[1]
+        r1, r2 = walkradius[0] + 1, walkradius[1] + 1  # Account for outline radius
+
+        # Compute the direction vector
+        dx, dy = p2[0] - p1[0], p2[1] - p1[1]
+        dist = math.sqrt(dx**2 + dy**2)
+
+        if dist > sum(walkradius):  # Avoid division by zero
+            # Normalize the vector
+            dx /= dist
+            dy /= dist
+
+            # Compute edge points
+            edge1 = (p1[0] + dx * r1, p1[1] + dy * r1)
+            edge2 = (p2[0] - dx * r2, p2[1] - dy * r2)
+
+            # Draw the line
+            pygame.draw.line(screen, pygame.Color("white"), edge1, edge2, 1)
 
         for tree in platforms.trees:
             screen.blit(tree[0],tree[1])
-
-        if (not any(collisions[0]) or not any(collisions[1])) and current_biome not in ['beach', None]:
-            if scale == 0:
+        
+        # If feet are too far apart or left foot isnt on the left
+        if scale == 0:
+            if feet[0][0] > feet[1][0] or 180 < feetdistance:
+                sounds[2].play()
+                scale = 100
+                stamina -= effects['stamina'] * 300
+        
+            # If we are not on any platform
+            elif (not any(collisions[0]) or not any(collisions[1])) and current_biome not in ['beach', None]:
                 if current_biome == 'snowy':
                     # Add footprints and increase hurt delay in snowy biome
-                    platforms.footprint(platforms, [(feet[1][0] - 38) * 2, (feet[1][1] - 38) * 2], shadows[normal[1]])
-                    platforms.footprint(platforms, [(feet[0][0] - 38) * 2, (feet[0][1] - 38) * 2], shadows[normal[0]])
+                    platforms.footprint(platforms, [(feet[0][0] - 38) * 2, (feet[0][1] - 38) * 2], shadow(images['foot_1'], (160, 160, 160)))
+                    platforms.footprint(platforms, [(feet[1][0] - 38) * 2, (feet[1][1] - 38) * 2], shadow(images['foot_2'], (160, 160, 160)))
                     scale = 200
-                    stamina -= effects['stamina'] * 50
+                    stamina -= effects['stamina'] * 100
                 else:
                     scale = 100
-                    stamina -= effects['stamina'] * 250
+                    stamina -= effects['stamina'] * 500
 
                 sounds[0].play()
                 if current_biome == 'boulder':
                     sounds[3].play()
+                    wet_feet = 480
+                    effects['temp'] -= 30
 
-            elif current_biome != 'snowy':
-                stamina -= effects['stamina'] * 4
-
-        elif twisted:
-            stamina -= effects['stamina'] * 2
-
-        elif stamina < 300 and current_biome not in ['snowy']:
-            # Regeneration
+        # Regeneration
+        elif stamina < 300 and current_biome != 'snowy':
             stamina += effects['regen']
 
         if current_biome == 'beach':
-            heat += effects['heat']
+            temp += 0.05
 
         elif current_biome == 'snowy':
-            heat -= effects['heat']
-            stamina -= effects['stamina']
+            temp -= 0.05
+            stamina -= effects['stamina'] * 4
 
             # Update and draw snowflakes
             for flake in snowflakes:
@@ -257,18 +230,17 @@ while running:
                 pygame.draw.circle(screen, 'white', (flake[0], flake[1]), flake[3])
         
         else:
-            # Bringing heat level back to middle
-            if heat > 150: 
-                heat -= min(0.025, heat - 150)
+            # Bringing temp level back to middle
+            if temp > 150: 
+                temp -= min(0.025, temp - 150)
 
-            elif heat < 150:
-                heat += 0.025
+            elif temp < 150:
+                temp += 0.025
 
         if scale != 0:
-            # Apply damage tint
+            # Apply and slowly fade damage tint
             damage_tint(screen, scale / (200 if current_biome == 'snowy' else 100))
-            # Fade the tint away
-            scale -= 2
+            scale -= 1
 
         # Mouse Position Circle
         pygame.draw.circle(screen, 'white', pos, 10, 1)
@@ -278,37 +250,44 @@ while running:
         pygame.draw.rect(screen, "#133672", (59, 44, 152, 12))
         pygame.draw.rect(screen, "#2B95FF", (60, 45, stamina / 2, 10))
 
-        # Heat bar
+        # Temperature bar
         pygame.draw.rect(screen, "#AFAFAF", (59, 64, 152, 12))
-        pygame.draw.rect(screen, "#E00000", (60, 65, heat / 2, 10))
+        pygame.draw.rect(screen, "#E00000", (60, 65, (temp + effects['temp']) / 2, 10))
         screen.blit(images['bar'], (36, 39))
 
-        #-20 to 50
-        show_text(screen, str(round((heat-150)/3)) + " °C", 14, (113, 86), "white")
+        #-100 to 100 degrees celcius
+        show_text(screen, f"{str(round((temp + effects['temp'] - 150) / 3))}°C", (113, 86), "white")
 
         # Displaying biome in bottom right (for testing)
-        show_text(screen, str(current_biome), 20, (245, 465), "black")
+        show_text(screen, str(current_biome), (245, 465), "black")
         
         screen.blit(images['highscore'], (2, 14))
 
         # Outlined Highscore text
-        show_text(screen, str(highscore), 20, (28, 23), 'black')
-        show_text(screen, str(highscore), 20, (30, 23), 'black')
-        show_text(screen, str(highscore), 20, (28, 21), 'black')
-        show_text(screen, str(highscore), 20, (30, 21), 'black')
-        show_text(screen, str(highscore), 20, (29, 22), 'white')
+        show_text(screen, str(highscore), (28, 23), 'black')
+        show_text(screen, str(highscore), (30, 23), 'black')
+        show_text(screen, str(highscore), (28, 21), 'black')
+        show_text(screen, str(highscore), (30, 21), 'black')
+        show_text(screen, str(highscore), (29, 22), 'white')
 
         # Displaying score
-        show_text(screen, str(int(score/50)), 38, (137, 24), "black")
-        show_text(screen, str(int(score/50)), 38, (135, 22), "white")
+        show_text(screen, str(int(score / 50)), (137, 24), "black", 32)
+        show_text(screen, str(int(score / 50)), (135, 22), "white", 32)
+
+        # Wet Feet
+        if wet_feet != 0:
+            wet_feet -= 1
+            if wet_feet == 0: effects['temp'] += 30
+            show_text(screen, "Wet Feet", (80, 106), '#3696BC')
+            show_text(screen, "Wet Feet", (80, 105), '#3ED1DC')
 
         # You die if you run out of stamina
         if stamina <= 0 or transition == 70:   
             transition = min(70, transition + 1)
             dead += 1
 
-        # You take damage if heat is too low or high
-        elif heat <= 0 or heat >= 300:
+        # You take damage if temp is too low or high
+        elif temp + effects['temp'] <= 0 or temp + effects['temp'] >= 300:
             stamina -= effects['stamina'] * 2
         
         if transition < 0:
@@ -322,25 +301,28 @@ while running:
                 # Resetting everything
                 dead = 0
                 stamina = 300
-                heat = 150
+                temp = 150
+                if wet_feet != 0: effects['temp'] += 30
+                wet_feet = 0
                 feet = [[85, 350], [185, 350]]
 
                 bgcolor = "gray"
 
                 if highscore < score:
-                    highscore = round(score/50)
+                    highscore = round(score / 50)
 
                 score = 0
                 transition = -70
                 
-                biome = 'bog'
+                biomes = list(colors.keys())
+                biome = random.choice(biomes)
+                
                 biomeswitch = random.randint(25, 40)
                 lastbiomeswitch = 0
                 lastbiome = None
-                twisted = False
-
+                
                 platforms = []
-                platforms = Platforms(platforms, images, biome)
+                platforms = Platforms(platforms, biome)
 
         # The black circular transition
         transition_surf = pygame.Surface(screen.get_size())

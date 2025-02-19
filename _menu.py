@@ -1,6 +1,11 @@
 import pygame, math
 from _utils import show_text
 
+images = {'button_hover' : pygame.image.load(f'images/UI/button_hover.png'),
+          'button' : pygame.image.load(f'images/UI/button.png'),
+          'perks' : pygame.image.load(f'images/UI/perks.png'),
+          'boulder' : pygame.image.load('images/boulders/boulder.png')}
+
 # Calculate the vertices of a hexagon
 def calculate_hexagon_vertices(center, size):
     return [
@@ -63,24 +68,18 @@ invitems = ['Water', 'Knee Pad', 'Left Foot', 'Right Foot', 'Sleeping Bag', 'Loc
 
 effects = {
     'slipchance' : 0, 
-    'heat'       : 0.05, 
+    'temp'       : 0, 
     'regen'      : 0.06, 
-    'stamina'    : 0.04
+    'stamina'    : 0.06
 }
 
 
 class Menu:
-    def __init__(self, screen, clicked, pos, walkradius, normal, images):
+    def __init__(self, screen, clicked, pos, walkradius, normal):
         screen.fill(bg_color)
+        self.normal = normal
         self.game_status = 'menu'
         self.effects = effects
-
-        #screen.blit(images['backpack'], (30, 100))
-        show_text(screen, "PICK THREE", 30, (138, 98), hexagon_default_color)
-        show_text(screen, "PICK THREE", 30, (135, 95), "white")
-
-        show_text(screen, "ITEMS", 30, (138, 123), hexagon_default_color)
-        show_text(screen, "ITEMS", 30, (135, 120), "white")
 
         for x, hexagon in enumerate(hexagons):
             if selected[x] == 2:
@@ -132,20 +131,20 @@ class Menu:
                     if perk == 'Left Foot':
                         walkradius[0] += 2 * strength
                         if strength == 1: 
-                            normal[0] = pygame.transform.flip(pygame.image.load('images/croc.png'), True, False)
+                            self.normal[0] = pygame.transform.flip(pygame.image.load('images/shoes/croc.png'), True, False)
                             effects['slipchance'] += 1
 
                         elif strength == 2: 
-                            normal[0] = pygame.transform.flip(pygame.image.load('images/boot.png'), True, False)
+                            self.normal[0] = pygame.transform.flip(pygame.image.load('images/shoes/boot.png'), True, False)
 
                     elif perk == 'Right Foot':
                         walkradius[1] += 3 * strength
                         if strength == 1: 
-                            normal[1] = pygame.image.load('images/croc.png')
+                            self.normal[1] = pygame.image.load('images/shoes/croc.png')
                             effects['slipchance'] += 1
 
                         elif strength == 2: 
-                            normal[1] = pygame.image.load('images/boot.png')
+                            self.normal[1] = pygame.image.load('images/shoes/boot.png')
                         
                     elif perk == 'Water':
                         walkradius[0] -= 2 * strength
@@ -153,9 +152,7 @@ class Menu:
                         effects['regen'] += 0.02 * strength
 
                     elif perk == 'Clothes':
-                        # First gives 80 % less damage from heat, 
-                        # Second gets rid of heat damage
-                        effects['heat'] -= min(0.04 * strength, 0.05)
+                        effects['temp'] += 15 * strength
 
                     elif perk == 'Knee Pad':
                         effects['stamina'] -= 0.005 * strength
@@ -163,14 +160,19 @@ class Menu:
                     elif perk == 'Sleeping Bag':
                         # Gotta add something here...
                         pass
-
+                
                 self.game_status = 'game'
                 self.effects = effects
             
         else:
             #pygame.draw.rect(screen, hexagon_default_color, (170/2, 676/2, 200/2, 50/2))
             screen.blit(images['button'], (85, 363, 100, 25))
-            
-        show_text(screen, 'DONE', 25, (135, 375), 'white')
-
+        
         screen.blit(images['perks'], (0, 0))
+
+        show_text(screen, "PICK THREE", (138, 98), hexagon_default_color)
+        show_text(screen, "PICK THREE", (135, 95), "white")
+
+        show_text(screen, "ITEMS", (138, 123), hexagon_default_color)
+        show_text(screen, "ITEMS", (135, 120), "white")
+        show_text(screen, 'DONE', (135, 375), 'white')

@@ -1,94 +1,64 @@
-import random, math, pygame, os
-from _utils import shadow
+import random, pygame, os
+from _utils import *
+
+# Get a list of file names
+files = os.listdir('images')
+images = {}
+
+for file in files:
+    if '.png' in file:
+        images[file.replace('.png', '')] = pygame.image.load(f'images/{file}')
+    else:
+        for item in os.listdir(f'images/{file}'):
+            images[item.replace('.png', '')] = pygame.image.load(f'images/{file}/{item}')
+
+for image in images.copy():
+    images[f"{image}_flipped"] = pygame.transform.flip(images[image], True, False)
+
+shadows = {}
 
 def image_variety(images, key):
     original = images[key]
     flipped = images[f"{key}_flipped"]
 
     return random.choice([original, flipped])
-    
-def rect_circle_intersect(rect, circle_center, circle_radius):
-    #Check if any corner of the rectangle is inside the circle
-    corners = [
-        rect.topleft, 
-        rect.topright, 
-        rect.bottomleft, 
-        rect.bottomright
-    ]
-    for corner in corners:
-        if math.hypot(corner[0] - circle_center[0], corner[1] - circle_center[1]) <= circle_radius:
-            return True
-
-    #Check if any edge of the circle intersects with any edge of the rectangle
-    closest_x = max(rect.left, min(circle_center[0], rect.right))
-    closest_y = max(rect.top, min(circle_center[1], rect.bottom))
-    distance_x = circle_center[0] - closest_x
-    distance_y = circle_center[1] - closest_y
-    return distance_x ** 2 + distance_y ** 2 <= circle_radius ** 2
-
-def circles_intersect(circle1_pos, circle1_radius, circle2_pos, circle2_radius):
-    # Calculate the distance between the centers of the circles
-    distance = math.sqrt((circle1_pos[0] - circle2_pos[0])**2 + (circle1_pos[1] - circle2_pos[1])**2)
-
-    # Check if the distance is less than the sum of the radii
-    if distance < circle1_radius + circle2_radius:
-        return True
-    else:
-        return False
 
 class Platform:
-    def __init__(self, biome, radius, pos, img, timer):
+    global images
+    def __init__(self, biome, radius, pos, img, timer=0, reset=True):
         self.biome = biome
-
-        if radius == None:
-            self.radius = radius
-
-        elif type(radius) == list:self.radius = [radius[0]/2, radius[1]/2]
-        else: self.radius = radius/2
-
-        self.pos = [pos[0]/2, pos[1]/2]
+        self.radius = radius
+        self.pos = list(pos)
         self.img = img
         self.timer = timer
+        self.reset = reset
 
-    def update(self, speed, biome, platforms, banned):
-        self.pos[1] += speed
+    def update(self, speed, biome, platforms):
+        self.pos[1] += speed  
 
         if self.pos[1] > 480:
-            if self.biome == biome and self.img not in banned:
+            if self.biome == biome and self.reset:
                 self.pos[1] = -200
                 #self.pos[0] = 270 - self.pos[0] 
                 self.timer = 0
             else: 
                 platforms.remove(self)
         
-    def render(self, screen, shadows, images, obstacles):
+    def render(self, screen, obstacles):
         if self.timer == 0:
             self.img.set_alpha(256)
             offset = 0
 
-            if self.img in [images['log_1'], images["log_1_flipped"]]:
-                # Hitbox testing:
-                #pygame.draw.rect(screen, 'blue', (self.pos[0] - offset, self.pos[1], 47, 200))
-                offset = 16
-                
-
-            if self.radius != None:
+            if self.radius != None and self.biome == 'boulder':
                 if self.img not in shadows:
-                    if self.biome == 'boulder':
-                        shadows[self.img] = [shadow(self.img, (13, 109, 135)), shadow(self.img, (206, 225, 245))]
-                    else:
-                        shadows[self.img] = shadow(self.img, (120, 165, 80))
+                    shadows[self.img] = [shadow(self.img, (13, 109, 135)), shadow(self.img, (206, 225, 245))]
 
-                if self.biome == 'boulder':
-                    screen.blit(shadows[self.img][0], (self.pos[0] - offset, self.pos[1] + 6))
-                    screen.blit(shadows[self.img][1], (self.pos[0] - offset, self.pos[1] + 1))
-                else:
-                    screen.blit(shadows[self.img], (self.pos[0] - offset, self.pos[1] + 3))
+                screen.blit(shadows[self.img][0], (self.pos[0] - offset, self.pos[1] + 6))
+                screen.blit(shadows[self.img][1], (self.pos[0] - offset, self.pos[1] + 1))
 
-                
                 if self.img == images['big_boulder']:
-                    obstacles.append(self.pos)
-                    
+                    obstacles.append(self)
+
             screen.blit(self.img, (self.pos[0] - offset, self.pos[1]))
             
         else:
@@ -96,123 +66,111 @@ class Platform:
             screen.blit(self.img, self.pos)
             self.timer -= 1
 
-
     def collision_check(self, collisions, feet, walkradius):
-        if self.radius not in [None, 40] and self.timer == 0:
+        if self.radius not in [None, 80] and self.timer == 0 :
             if self.biome == 'boulder':
                 collisions[0].append(circles_intersect(feet[0], walkradius[0] * 0.85, [self.pos[0] + self.radius, self.pos[1] + self.radius], self.radius))
                 collisions[1].append(circles_intersect(feet[1], walkradius[1] * 0.85, [self.pos[0] + self.radius, self.pos[1] + self.radius], self.radius))
 
-            elif self.biome == 'bog':
-                collisions[0].append(rect_circle_intersect(pygame.Rect(self.pos+self.radius), feet[0], walkradius[0]*0.85))
-                collisions[1].append(rect_circle_intersect(pygame.Rect(self.pos+self.radius), feet[1], walkradius[1]*0.85))
+            else:
+                collisions[0].append(rect_circle_intersect(pygame.Rect(self.pos + self.radius), feet[0], walkradius[0] * 0.85))
+                collisions[1].append(rect_circle_intersect(pygame.Rect(self.pos + self.radius), feet[1], walkradius[1] * 0.85))
 
         else:
             collisions[0].append(False)
             collisions[1].append(False)
 
 class Platforms:
-    def __init__(self, platforms, images, new_biome):
-
+    global images
+    def __init__(self, platforms, new_biome):
+        
         # This is so that we can add to the platforms
         if isinstance(platforms, Platforms): self.platforms = platforms.platforms
         else: self.platforms = platforms
+        
+        transitions = {'boulder' : 'transition_1', 
+                       'snowy'   : 'transition_2',
+                       'bog'     : 'transition_3',
+                       'beach'   : 'transition_4',
+                       'ladder'  : 'transition_5'}
+        
+        self.platforms.append(Platform(new_biome, None, (0, -700), images[transitions[new_biome]], reset=False))
 
         # Generating platforms based on the biome
         if new_biome == 'boulder':
-            self.platforms.append(Platform('boulder', None, [0, -1400], images['transition_1'], 0))
-            avoid = []
+            self.platforms.append(Platform('boulder', 80, [50, -425], images['big_boulder']))
+            avoid =[[50, -425, 70]]
 
             for i in range(26):
-                x = random.randint(0, 490)
-                y = i*50 - 1800
-                rand = random.randint(0, 1)
+                x, y = random.randint(0, 245), i*25 - 900
+                img = random.choice([images['boulder'], images['boulder_2']])
+                size = img.get_height()
+                counter = 1
+                while counter < 10:   
+                    counter += 1
+                    if not any(circles_intersect([item[0] + item[2], item[1] + item[2]], item[2], [x + size, y + size], size) for item in avoid):
+                        self.platforms.append(Platform('boulder', size, (x, y), img))
+                        avoid.append([x, y, size])
+                        break
+                    
+            self.biome_builder_2('boulder', 5, ['bubbles_1', 'bubbles_2', 'bubbles_3','bubbles_4'])
 
-                self.platforms.append(Platform('boulder', [56, 45][rand], (x, y), [images['boulder'], images['boulder_2']][rand], 0))
-                avoid.append([[x, y], [56, 45][rand]])
-
-            self.platforms.append(Platform('boulder', 80, [100, 500 - 1350], images['big_boulder'], 0))
-            avoid.append([[100, 500 - 1350], 80])
-            
-            for _ in range(10):
-                x = random.randint(0, 520)
-                y = random.randint(-350, 960) - 1400
-                self.platforms.append(Platform('boulder', None, (x, y), image_variety(images, random.choice(['bubbles_1', 'bubbles_2', 'bubbles_3','bubbles_4'])), 0))
-
-            amount = [50] * 2 + [38] * 3 + [25] * 8 + [16] * 10
-            lilypads = {50 : 'lily_1', 38: 'lily_2', 25: 'lily_3', 16: 'lily_4'}
+            amount = [25] * 2 + [19] * 3 + [13] * 8 + [8] * 10
+            lilypads = {25 : 'lily_1', 19: 'lily_2', 13: 'lily_3', 8: 'lily_4'}
 
             for size in amount:
-                attempt = 0
-                while attempt < 50:
-                    attempt += 1
-                    x = random.randint(0, 520)
-                    y = random.randint(-350, 960) - 1400
+                x, y = random.randint(0, 260), random.randint(-900, -220)
 
-                    if not any(circles_intersect([item[0][0] + item[1], item[0][1] + item[1]], item[1], [x + size, y + size], size + 5) for item in avoid):
-                        avoid.append([[x, y], 38])
-                        self.platforms.append(Platform('boulder', None, (x, y), image_variety(images, lilypads[size]), 0))
-                        break
-
+                if not any(circles_intersect([item[0] + item[2], item[1] + item[2]], item[2], [x + size, y + size], size) for item in avoid):
+                    avoid.append([x, y, size])
+                    self.platforms.append(Platform('boulder', None, (x, y), image_variety(images, lilypads[size])))
 
         elif new_biome == 'bog':
-            self.platforms.append(Platform('bog', None, (0, -1400), images['transition_3'], 0))
+            choices = [choice.replace('.png', '') for choice in os.listdir('images/bog_decor')]
 
-            for i in range(8):
-                if random.randint(0, 1) == 0: x = random.randint(0, 100)
-                else: x = random.randint(250, 500)
-                y = i*120-1400
-                self.platforms.append(Platform('bog', [100, 20], [x, y], image_variety(images, 'log_2'), 0))
-
-            for i in range(2):
-                x = random.randint(150, 200)
-                y = i*600-1500
-                self.platforms.append(Platform('bog', [94, 400], [x, y], image_variety(images, 'log_1'), 0))
-
-            choices = os.listdir('images/shadow') + os.listdir('images/grass')
-            choices = [choice.replace('.png', '') for choice in choices]
-            weights = [10, 6, 4, 3, 2, 2, 6, 6, 6, 6, 6, 6]
-
-            for x in range(13):
-                for y in range(17):
-                    pos_x = x * 40
-                    pos_y = y * 80 - 1700
-                    
-                    if x > 5:
-                        if random.randint(0, 3) == 0:
-                            selected_image = image_variety(images, random.choices(['flower_1', 'flower_2'], weights=[50, 50])[0])
-                            self.platforms.append(Platform('bog', None, (pos_x, pos_y), selected_image, 0))
-                    else:
-                        selected_image = image_variety(images, random.choices(choices, weights=weights)[0])
-                        offset = 540 - pos_x if random.randint(0, 1) == 0 else pos_x
-                        self.platforms.append(Platform('bog', None, (offset, pos_y), selected_image, 0))
-
-            for y in range(17):
-                offset = 475 - random.randint(0, 80) if random.randint(0, 1) == 0 else random.randint(0, 80) - 75
-                self.platforms.append(Platform('bog', None, (offset, y * 80 - 1700), images['tree'], 0))               
+            self.biome_builder_2('bog', 40, choices, [10, 6, 4, 3, 2, 2, 6, 6, 6, 6, 6, 6, 12, 12])
+            self.biome_builder_1('bog', 2, [47, 200], 'log', [75, 100]) 
+            self.biome_builder_1('bog', 8, [50, 10], 'ladder', [50, 100], True)     
+            self.biome_builder_1('bog', 17, None, 'tree', [-43, 21], True)             
 
         elif new_biome == 'snowy':
-            self.platforms.append(Platform('snowy', None, (0, -1400), images['transition_2'], 0))
-            for _ in range(6):
-                x = random.randint(0, 520)
-                y = random.randint(-400, 960) - 1400
-
-                self.platforms.append(Platform('snowy', None, (x, y), image_variety(images, 'stick'), 0))
+            self.biome_builder_2('snowy', 6, ['stick'], [1])
         
         elif new_biome == 'beach':
-            self.platforms.append(Platform('beach', None, (0, -1400), images['transition_4'], 0))
-            for _ in range(25):
-                x = random.randint(0, 520)
-                y = random.randint(-400, 960) - 1400
+            self.biome_builder_2('beach', 25, ['sand', 'sand_2', 'sand_3', 'sand_dollar', 'starfish'], [26, 26, 26, 4, 8])
 
-                selected_image = image_variety(images, random.choices(['sand', 'sand_2', 'sand_3', 'sand_dollar', 'starfish'], weights=[26, 26, 26, 4, 8])[0])
-                self.platforms.append(Platform('beach', None, (x, y), selected_image, 0))
+        elif new_biome == 'ladder':
+            #self.biome_builder_1('ladder', 9, [50, 10], 'ladder', [110, 110])
+            for i in range(9):
+                x, y = 110, (480 - (i * ((480 + 200) / 9)) - 710)
+                if random.randint(0, 5) == 0: 
+                    self.platforms.append(Platform('ladder', None, [x, y], image_variety(images, 'fallen_ladder'))) 
+                else: 
+                    self.platforms.append(Platform('ladder', [50, 10], [x, y], image_variety(images, 'ladder'))) 
 
-    def update(self, speed, biome, banned):
+    def biome_builder_1(self, biome, amount, size, img, threshold, flipped=False):
+        for i in range(amount):
+            image = image_variety(images, img)
+            if flipped and random.randint(0, 1) == 0:
+                x = random.randint(270 - threshold[1] - image.get_height(), 270 - threshold[0] - image.get_height())
+            else: 
+                x = random.randint(threshold[0], threshold[1])
+
+            y = (480 - (i * ((480 + 200) / amount)) - 700 - image.get_height())
+            self.platforms.append(Platform(biome, size, [x, y], image)) 
+
+    def biome_builder_2(self, biome, amount, choices=[], weights=None):
+        for _ in range(amount):
+            x, y = random.randint(0, 260), random.randint(-900, -220)
+
+            selected_image = image_variety(images, random.choices(choices, weights=weights)[0])
+            self.platforms.append(Platform(biome, None, (x, y), selected_image))
+
+    def update(self, speed, biome):
         for platform in self.platforms[::-1]:
-            platform.update(speed, biome, self.platforms, banned)
+            platform.update(speed, biome, self.platforms)
     
-    def render(self, screen, shadows, images):
+    def render(self, screen):
         obstacles = []
         trees = []
 
@@ -222,11 +180,11 @@ class Platforms:
                 trees.append([platform.img, platform.pos])
 
             elif platform.radius == None:
-                platform.render(screen, shadows, images, obstacles)
+                platform.render(screen, obstacles)
 
         for platform in self.platforms:
             if platform.radius != None and platform.img not in [images['tree'], images["tree_flipped"]]:
-                platform.render(screen, shadows, images, obstacles)
+                platform.render(screen, obstacles)
 
         self.trees = trees
         self.obstacles = obstacles
@@ -255,4 +213,4 @@ class Platforms:
         if isinstance(platforms, Platforms): self.platforms = platforms.platforms
         else: self.platforms = platforms
 
-        self.platforms.append(Platform('snowy', None, pos, img, 0))
+        self.platforms.append(Platform('snowy', None, pos, img, reset=False))
