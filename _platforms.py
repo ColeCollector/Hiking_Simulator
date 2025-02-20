@@ -38,11 +38,14 @@ class Platform:
 
         if self.pos[1] > 480:
             if self.biome == biome and self.reset:
-                self.pos[1] = -200
-                #self.pos[0] = 270 - self.pos[0] 
+                self.pos[1] = -200 
                 self.timer = 0
             else: 
                 platforms.remove(self)
+
+                # Spawning the sewer lid after all the ladders have spawned
+                if self.biome == 'sewer' and self.reset and not images['sewer_lid'] in [p.img for p in platforms]:
+                    platforms.append(Platform('sewer', None, (64, -180), images['sewer_lid'], reset=False))
         
     def render(self, screen, obstacles):
         if self.timer == 0:
@@ -92,7 +95,7 @@ class Platforms:
                        'snowy'   : 'transition_2',
                        'bog'     : 'transition_3',
                        'beach'   : 'transition_4',
-                       'ladder'  : 'transition_5'}
+                       'sewer'  : 'transition_5'}
         
         self.platforms.append(Platform(new_biome, None, (0, -700), images[transitions[new_biome]], reset=False))
 
@@ -106,7 +109,7 @@ class Platforms:
                 img = random.choice([images['boulder'], images['boulder_2']])
                 size = img.get_height()
                 counter = 1
-                while counter < 10:   
+                while counter < 15:   
                     counter += 1
                     if not any(circles_intersect([item[0] + item[2], item[1] + item[2]], item[2], [x + size, y + size], size) for item in avoid):
                         self.platforms.append(Platform('boulder', size, (x, y), img))
@@ -128,7 +131,7 @@ class Platforms:
         elif new_biome == 'bog':
             choices = [choice.replace('.png', '') for choice in os.listdir('images/bog_decor')]
 
-            self.biome_builder_2('bog', 40, choices, [10, 6, 4, 3, 2, 2, 6, 6, 6, 6, 6, 6, 12, 12])
+            self.biome_builder_2('bog', 60, choices, [10, 6, 4, 3, 2, 2, 6, 6, 6, 6, 6, 6, 20, 20])
             self.biome_builder_1('bog', 2, [47, 200], 'log', [75, 100]) 
             self.biome_builder_1('bog', 8, [50, 10], 'ladder', [50, 100], True)     
             self.biome_builder_1('bog', 17, None, 'tree', [-43, 21], True)             
@@ -139,14 +142,13 @@ class Platforms:
         elif new_biome == 'beach':
             self.biome_builder_2('beach', 25, ['sand', 'sand_2', 'sand_3', 'sand_dollar', 'starfish'], [26, 26, 26, 4, 8])
 
-        elif new_biome == 'ladder':
-            #self.biome_builder_1('ladder', 9, [50, 10], 'ladder', [110, 110])
+        elif new_biome == 'sewer':
             for i in range(9):
                 x, y = 110, (480 - (i * ((480 + 200) / 9)) - 710)
                 if random.randint(0, 5) == 0: 
-                    self.platforms.append(Platform('ladder', None, [x, y], image_variety(images, 'fallen_ladder'))) 
+                    self.platforms.append(Platform('sewer', None, [x, y], image_variety(images, 'fallen_ladder'))) 
                 else: 
-                    self.platforms.append(Platform('ladder', [50, 10], [x, y], image_variety(images, 'ladder'))) 
+                    self.platforms.append(Platform('sewer', [50, 10], [x, y], image_variety(images, 'sewer_ladder'))) 
 
     def biome_builder_1(self, biome, amount, size, img, threshold, flipped=False):
         for i in range(amount):
@@ -197,7 +199,7 @@ class Platforms:
         
         if clicked:
             # Randomly falling platforms
-            if random.randint(0, 6 - slipchance) == 0:
+            if random.randint(0, 8 - slipchance) == 0:
                 ontop = [i for sublist in collisions for i, value in enumerate(sublist) if value]
                 
                 # If we are ontop of a platform

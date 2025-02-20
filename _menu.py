@@ -1,6 +1,10 @@
 import pygame, math
 from _utils import show_text
 
+pygame.mixer.init()
+sounds = [pygame.mixer.Sound('sounds/select.wav')]
+sounds[0].set_volume(0.5)
+
 images = {'button_hover' : pygame.image.load(f'images/UI/button_hover.png'),
           'button' : pygame.image.load(f'images/UI/button.png'),
           'perks' : pygame.image.load(f'images/UI/perks.png'),
@@ -64,18 +68,19 @@ for i in range(3):
     hexagons.append(vertices)
 
 #invitems = {"Water" : ["plastic bottle", "metal bottle", "water jug"], "Knee-pad" : None, "Left Foot":["crocs", "hiking boots", "work boots"], "Right Foot":["crocs", "hiking boots", "work boots"], "Sleeping Bag":["light bag(10C)", "3 season bag(-5C)", "winter bag(-40)"], "Locked_2" : None, "Clothes":["no spare clothes", "an extra of everything", "7 days of clothes"]}
-invitems = ['Water', 'Knee Pad', 'Left Foot', 'Right Foot', 'Sleeping Bag', 'Locked', 'Clothes']
+invitems = ['Water', 'Knee Pad', 'Left Foot', 'Right Foot', 'Sleeping Bag', 'Spring', 'Clothes']
 
 effects = {
     'slipchance' : 0, 
     'temp'       : 0, 
-    'regen'      : 0.06, 
-    'stamina'    : 0.06
+    'regen'      : 0.15, 
+    'stamina'    : 0.08,
+    'jump'       : 6
 }
 
 
 class Menu:
-    def __init__(self, screen, clicked, pos, walkradius, normal):
+    def __init__(self, screen, clicked, pos, walk_radius, normal):
         screen.fill(bg_color)
         self.normal = normal
         self.game_status = 'menu'
@@ -95,6 +100,7 @@ class Menu:
                 
                 if clicked == True and point_in_polygon(pos, hexagon):
                     if sum(selected.values()) < 3:
+                        sounds[0].play()
                         selected[x] += 1
 
                     elif sum(selected.values()) == 3:
@@ -102,6 +108,7 @@ class Menu:
             
             elif point_in_polygon(pos, hexagon):
                 if clicked == True and sum(selected.values()) < 3:
+                    sounds[0].play()
                     selected[x] += 1
                 color = hexagon_hover_color
                 outline = hexagon_default_outline
@@ -129,7 +136,7 @@ class Menu:
                     strength = selected[value]
 
                     if perk == 'Left Foot':
-                        walkradius[0] += 2 * strength
+                        walk_radius[0] += 4 * strength
                         if strength == 1: 
                             self.normal[0] = pygame.transform.flip(pygame.image.load('images/shoes/croc.png'), True, False)
                             effects['slipchance'] += 1
@@ -138,7 +145,7 @@ class Menu:
                             self.normal[0] = pygame.transform.flip(pygame.image.load('images/shoes/boot.png'), True, False)
 
                     elif perk == 'Right Foot':
-                        walkradius[1] += 3 * strength
+                        walk_radius[1] += 4 * strength
                         if strength == 1: 
                             self.normal[1] = pygame.image.load('images/shoes/croc.png')
                             effects['slipchance'] += 1
@@ -147,20 +154,33 @@ class Menu:
                             self.normal[1] = pygame.image.load('images/shoes/boot.png')
                         
                     elif perk == 'Water':
-                        walkradius[0] -= 2 * strength
-                        walkradius[1] -= 2 * strength
-                        effects['regen'] += 0.02 * strength
+                        # + 8 % Regeneration
+                        # - 2 Walk Radius
+                        walk_radius[0] -= 2 * strength
+                        walk_radius[1] -= 2 * strength
+                        effects['regen'] += (effects['regen'] / 8) * strength
 
                     elif perk == 'Clothes':
+                        # + 15°C
                         effects['temp'] += 15 * strength
 
                     elif perk == 'Knee Pad':
-                        effects['stamina'] -= 0.005 * strength
+                        # - 5 % Stamina Reduction
+                        effects['stamina'] -= (effects['stamina'] / 5) * strength
 
                     elif perk == 'Sleeping Bag':
                         # Gotta add something here...
                         pass
-                
+
+                    elif perk == 'Spring':
+                        if strength == 1:
+                            # + 17 % Jump Distance
+                            effects['jump'] += 1
+
+                        elif strength == 2:
+                            # + 50 % Jump Distance
+                            effects['jump'] += 3
+
                 self.game_status = 'game'
                 self.effects = effects
             

@@ -73,3 +73,16 @@ def circles_intersect(circle1_pos, circle1_radius, circle2_pos, circle2_radius):
     if distance < circle1_radius + circle2_radius: 
         return True
     return False
+
+def calculate_trajectory(start_pos, velocity, frame_count):
+    #Returns a list of points representing the trajectory of the shoes
+    points = []
+    temp_pos = list(start_pos)
+    temp_vel = list(velocity)
+
+    for _ in range(frame_count):  # Simulate frame_count frames into the future
+        temp_pos[0] += temp_vel[0]
+        temp_pos[1] += temp_vel[1]
+        points.append(tuple(temp_pos))
+    
+    return points
