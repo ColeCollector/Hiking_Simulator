@@ -37,7 +37,7 @@ def avoid_obstacles(pos, obstacles, locked):
     return pos
 
 def show_text(screen, text, location, color, size=16):
-    font = pygame.font.Font('font/Alkhemikal.ttf', size)
+    font = pygame.font.Font('data/font/Alkhemikal.ttf', size)
     text_surface = font.render(text, True, color)
     text_rect = text_surface.get_rect(center=location)
     screen.blit(text_surface, text_rect)

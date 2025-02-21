@@ -2,13 +2,12 @@
 A 2d game made using pygame about walking along a trail with various terrains and obstacles. You can move your thumb to swing your two feet across the screen in order to navigate the terrain. It's a pixel art styled strategy/exploration game. At the start of your journey, you will choose what three items to bring along. Each item offers unique perks, but comes at the cost of being heavy which will impair your movement. You will have to keep track of your stamina and temperature making sure to never run out of stamina and to stay at a proper temperature. All of the textures were created by myself except for the grass and flower textures which I credited below. My friend came up with a lot of the ideas in the game after being on a hiking trip in highschool though he did not implent anything into the game.
 
 ## Biomes
-
-| biome          | beach      | snowy      | bog        | boulders   |
-|:--------------:|:----------:|:----------:|:----------:|:----------:|
-| **temperature**| hot        | cold       | neutral    | neutral    |
-| **difficulty** | easy       | medium     | medium     | hard       |
-| **obstacles?** | no         | no         | yes        | yes        |
-| **qualities**  | walk slower| slippery   | decor      | loose rocks|
+| biome          | beach        | snowy        | bog          | boulders     | sewer        |              |
+|:--------------:|:------------:|:------------:|:------------:|:------------:|:------------:|:------------:|
+| **temperature**| hot          | cold         | neutral      | neutral      |              |              |
+| **difficulty** | easy         | medium       | medium       | hard         | easy         |              |
+| **obstacles?** | no           | no           | yes          | yes          | yes          |              |
+| **qualities**  | no damage    | slippery     | none         | loose rocks  | missing rung |              |
 
 
 | Bog Biome      | Boulder Biome  |
@@ -17,7 +16,9 @@ A 2d game made using pygame about walking along a trail with various terrains an
 
 
 ## **Game Mechanics**
-- Put thumb/pointer down and swipe to move foot to the necessary location.
+- Swipe or click to move foot to the desired location.
+
+- Swipe between your feet to jump.
 
 - Ui item selection: decide what to bring with you in your backpack.
 
@@ -82,3 +83,5 @@ Ladder sections:
 ## Credits:
 The only pixel art not created by myself was the grass and flower textures from here:
 https://craftpix.net/freebies/free-village-pixel-tileset-for-top-down-defense/
+
+sf3-sfx-menu-select.wav by broumbroum -- https://freesound.org/s/50561/ -- License: Attribution 3.0
