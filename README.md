@@ -1,18 +1,18 @@
 # **Main Game Idea**
-A 2d game made using pygame about walking along a trail with various terrains and obstacles. You can move your thumb to swing your two feet across the screen in order to navigate the terrain. It's a pixel art styled strategy/exploration game. At the start of your journey, you will choose what three items to bring along. Each item offers unique perks, but comes at the cost of being heavy which will impair your movement. You will have to keep track of your stamina and temperature making sure to never run out of stamina and to stay at a proper temperature. All of the textures were created by myself except for the grass and flower textures which I credited below. My friend came up with a lot of the ideas in the game after being on a hiking trip in highschool though he did not implent anything into the game.
+A 2d game made using pygame about walking along a trail with various terrains and obstacles. You can move your thumb to swing your two feet across the screen in order to navigate the terrain. It's a pixel art styled strategy/exploration game. At the start of your journey, you will choose what three items to bring along. Each item offers unique perks, but comes at the cost of being heavy which will impair your movement. You will have to keep track of your stamina and temperature. My friend came up with a lot of the ideas in the game after being on a hiking trip in highschool though he did not implent anything into the game.
 
 ## Biomes
-| biome          | beach        | snowy        | bog          | boulders     | sewer        |              |
-|:--------------:|:------------:|:------------:|:------------:|:------------:|:------------:|:------------:|
-| **temperature**| hot          | cold         | neutral      | neutral      |              |              |
-| **difficulty** | easy         | medium       | medium       | hard         | easy         |              |
-| **obstacles?** | no           | no           | yes          | yes          | yes          |              |
-| **qualities**  | no damage    | slippery     | none         | loose rocks  | missing rung |              |
+| biome          | beach          | snowy          | bog            | boulders       | sewer          |      ?         |
+|:--------------:|:--------------:|:--------------:|:--------------:|:--------------:|:--------------:|:--------------:|
+| **temperature**| hot            | cold           | neutral        | neutral        | neutral        |      ?         |
+| **difficulty** | easy           | medium         | medium         | hard           | easy           |      ?         |
+| **obstacles?** | no             | no             | yes            | yes            | yes            |      ?         |
+| **qualities**  | no damage      | damage always  | none           | loose rocks    | missing rung   |      ?         |
 
 
-| Bog Biome      | Boulder Biome  |
+| Bog Biome       | Boulder Biome  |
 |-----------------|----------------|
-| ![bog](https://github.com/user-attachments/assets/36538487-b0f1-410c-b7db-706751faddec) | ![boulder](https://github.com/user-attachments/assets/818c54c1-4843-4f94-9556-c3c1a8cc92f3)|
+| TO BE ADDED     | TO BE ADDED    |
 
 
 ## **Game Mechanics**
@@ -22,43 +22,47 @@ A 2d game made using pygame about walking along a trail with various terrains an
 
 - Ui item selection: decide what to bring with you in your backpack.
 
-- Being too heavy makes it hard to jump and makes moving foot slower.
+- Being too heavy makes moving foot slower.
 
-- A stamina bar that goes down when you walk.
+- A stamina bar that goes down when you slip.
   
-- A heat bar that goes up or down depending on the biome.
+- A heat bar fluctuates depending on the biome.
 
+- Foot wetness when you step in water causing temperature decrease.
+  
 ## Items:
-You are able to choose three items, but you can pick the same item twice to increase its effectiveness.
+You are able to choose three items, but you can pick the same item twice to double its effectiveness.
 | Item            | Function                                                                                               |
 |:---------------:|:------------------------------------------------------------------------------------------------------:|
-| Water Bottle    | Stamina will refill faster <br>                                                                        |
-| Shoes           | Lets you walk further, though some shoes could make you slip easier                                    |
-| Clothes         | Protection from heat                                                                                   |
-| Sleeping Bag    | Lets you skip nighttime                                                                                |
-| Knee Pad        | Stamina will go down less if you fall off an object                                                    |
+| Water Bottle    | Stamina will refill 8% faster <br> -2 Walk Radius                                                      |
+| Shoes           | Lets you walk 10 % further, though some shoes could make you slip easier                               |
+| Clothes         | Permenant + 15°C temperature bonus                                                                     |
+| Spring          | Lets you jump 20 % further                                                                             |
+| Knee Pad        | Stamina goes down 5 % less when damaged                                                                |
 
 
 ## Item Selection Screen
 
-![Image](https://github.com/user-attachments/assets/83efe708-d429-40a3-bbe6-bf393f1de057)
+TO BE ADDED
 
 ---
 
 ## Future update wishlist (not in the game yet):
 
 ### New Mechanic Ideas:
+- Oval around foot instead of Circle
+  
 - Occasional one time events like dinky bridges or a log walk section.
   
 - Occasional need for big jumps with swipes up and then catching it with the thumb movement.
   
-- Foot wetness can lead to mlre blisters and an increase in pain/discomfort.
-  
-- Thirst bar that can lead to dehydration. need to decontaminate water if in creek. if you do not you have a chance of getting sick if you get water too often you can develop dehydration because you need to wait to decontaminate.
-  
 - A chance of rain occuring which causes more and larger puddles, slipperier obstacles, heat goes down fast, especially when not moving.
   
 - Instead of the water bottle just making stamina increase faster, you could click something at the top to drink water and refill stamina.
+
+- Being heavy makes it hard to jump
+
+- Snowy Biome makes you slide around
 
 
 ### New Biome Ideas:
@@ -74,11 +78,6 @@ Forrest:
 - infrequent jumps, 
 - boardwalk sections
 
-Ladder sections: 
-- often short, 
-- high effort, 
-- hard if heavy, 
-- occasional missing rungs to add difficulty
 
 ## Credits:
 The only pixel art not created by myself was the grass and flower textures from here:
