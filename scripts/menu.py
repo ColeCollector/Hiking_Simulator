@@ -105,11 +105,9 @@ class Menu:
             # Displaying Hexagons
             pygame.draw.polygon(self.game.screen, color, hexagon, 0)
             pygame.draw.polygon(self.game.screen, outline, hexagon, 5)
-
             pygame.draw.circle(self.game.screen, outline, circles[x], 12)
         
         if pygame.Rect(85, 363, 100, 25).collidepoint(self.game.pos):
-            #pygame.draw.rect(screen, hexagon_hover_color, (170/2, 676/2, 200/2, 50/2))
             self.game.screen.blit(self.game.images['button_hover'], (85, 363, 100, 25))
             if self.game.clicking == True and sum(selected.values()) == 3:
                 # Finding which perk based on which hexagon was selected
@@ -119,7 +117,7 @@ class Menu:
                 for value in perks:
                     perk = invitems[value]
                     strength = selected[value]
-
+                    
                     if perk == 'Left Foot':
                         self.game.walk_radius[0] += 4 * strength
                         if strength == 1: 

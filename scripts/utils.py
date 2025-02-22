@@ -30,7 +30,7 @@ def is_within_circle(pos, center, radius):
     dy = pos[1] - center[1]
     return dx * dx + dy * dy < radius * radius
 
-def avoid_obstacles(pos, obstacles, locked):
+def avoid_obstacles(pos, obstacles):
     for obstacle in obstacles:
         if is_within_circle(pos, (obstacle.pos[0] + 80, obstacle.pos[1] + 80), 80):
             pos = closest_point_on_circle(pos, (obstacle.pos[0] + 80, obstacle.pos[1] + 80), 80)

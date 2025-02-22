@@ -24,7 +24,7 @@ class Game():
         pygame.mixer.music.play(-1)
 
         self.sounds = [pygame.mixer.Sound('data/sounds/ow.wav'), pygame.mixer.Sound('data/sounds/jump.wav'), pygame.mixer.Sound('data/sounds/bone.mp3'), 
-                pygame.mixer.Sound('data/sounds/splash.mp3'), pygame.mixer.Sound('data/sounds/snow.mp3')]
+                       pygame.mixer.Sound('data/sounds/splash.mp3'), pygame.mixer.Sound('data/sounds/snow.mp3')]
 
         self.sounds[0].set_volume(0.1)
         self.sounds[1].set_volume(0.2)
@@ -68,7 +68,7 @@ class Game():
 
         self.biomes = list(self.colors.keys())
         self.biome = random.choice(self.biomes)
-        self.biome = 'sewer'
+        self.biome = 'bog'
 
         self.biome_switch = random.randint(25, 40)
         self.last_biome_switch = 0
@@ -170,8 +170,11 @@ class Game():
                     self.scale -= 1
 
                 # You take damage if temp is too low or high
-                if self.temp + self.effects['temp'] <= 0 or self.temp + self.effects['temp'] >= 300:
-                    self.stamina -= self.effects['stamina'] * 5
+                if self.temp + self.effects['temp'] <= 50:
+                    self.stamina -= (50 - self.temp + self.effects['temp']) * self.effects['stamina']
+
+                elif self.temp + self.effects['temp'] >= 250:
+                    self.stamina -= (self.temp + self.effects['temp'] - 250) * self.effects['stamina']
 
                 # Regeneration
                 elif self.stamina < 300 and self.current_biome != 'snowy':

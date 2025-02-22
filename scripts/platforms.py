@@ -9,23 +9,25 @@ def image_variety(images, key):
     return random.choice([original, flipped])
 
 class Platform:
-    def __init__(self, game, biome, radius, pos, img, timer=0, reset=True):
+    def __init__(self, game, biome, radius, pos, img, opacity=255, reset=True):
         self.game = game
         self.shadows = self.game.shadows
         self.biome = biome
         self.radius = radius
         self.pos = list(pos)
         self.img = img
-        self.timer = timer
+        self.opacity = opacity
         self.reset = reset
 
     def update(self):
         self.pos[1] += round(self.game.speed)
 
-        if self.pos[1] > 480:
+        if self.opacity == 0:
+            self.game.positions.remove(self)
+
+        elif self.pos[1] > 480:
             if self.biome == self.game.biome and self.reset:
                 self.pos[1] = -200 
-                self.timer = 0
             else: 
                 self.game.positions.remove(self)
 
@@ -34,10 +36,11 @@ class Platform:
                     self.game.positions.append(Platform(self.game, 'sewer', None, (64, -180), self.game.images['sewer_lid'], reset=False))
         
     def render(self):
-        if self.timer == 0:
-            self.img.set_alpha(256)
-            offset = 0
+        # The log needs to be offset since it's image is bigger than it's hitbox
+        offset = 8 if self.img in [self.game.images['log'], self.game.images["log_flipped"]] else 0
 
+        if self.opacity == 255:
+            self.img.set_alpha(255)
             if self.radius != None and self.biome == 'boulder':
                 if self.img not in self.shadows:
                     self.shadows[self.img] = [shadow(self.img, (13, 109, 135)), shadow(self.img, (206, 225, 245))]
@@ -47,23 +50,21 @@ class Platform:
 
                 if self.img == self.game.images['big_boulder']:
                     self.game.platforms.obstacles.append(self)
-
-            self.game.screen.blit(self.img, (self.pos[0] - offset, self.pos[1]))
-            
         else:
-            self.img.set_alpha(self.timer)
-            self.game.screen.blit(self.img, self.pos)
-            self.timer -= 1
-
-    def collision_check(self, platforms, feet):
-        if self.radius not in [None, 80] and self.timer == 0 :
+            self.img.set_alpha(self.opacity)
+            self.opacity -= 2
+            
+        self.game.screen.blit(self.img, (self.pos[0] - offset, self.pos[1]))
+        
+    def collision_check(self):
+        if self.radius not in [None, 80] and self.opacity == 255:
             if self.biome == 'boulder':
-                self.game.platforms.collisions[0].append(circles_intersect(feet[0], self.game.walk_radius[0] * 0.85, [self.pos[0] + self.radius, self.pos[1] + self.radius], self.radius))
-                self.game.platforms.collisions[1].append(circles_intersect(feet[1], self.game.walk_radius[1] * 0.85, [self.pos[0] + self.radius, self.pos[1] + self.radius], self.radius))
+                self.game.platforms.collisions[0].append(rect_circle_intersect(self.game.feet.hitbox[0], [self.pos[0] + self.radius, self.pos[1] + self.radius], self.radius))
+                self.game.platforms.collisions[1].append(rect_circle_intersect(self.game.feet.hitbox[1], [self.pos[0] + self.radius, self.pos[1] + self.radius], self.radius))
 
             else:
-                self.game.platforms.collisions[0].append(rect_circle_intersect(pygame.Rect(self.pos + self.radius), feet[0], self.game.walk_radius[0] * 0.85))
-                self.game.platforms.collisions[1].append(rect_circle_intersect(pygame.Rect(self.pos + self.radius), feet[1], self.game.walk_radius[1] * 0.85))
+                self.game.platforms.collisions[0].append(self.game.feet.hitbox[0].colliderect(pygame.Rect(self.pos + self.radius)))
+                self.game.platforms.collisions[1].append(self.game.feet.hitbox[1].colliderect(pygame.Rect(self.pos + self.radius)))
 
         else:
             self.game.platforms.collisions[0].append(False)
@@ -87,16 +88,20 @@ class Platforms:
         # Generating platforms based on the biome
         if self.game.biome == 'boulder':
             self.game.positions.append(Platform(self.game, 'boulder', 80, [50, -425], self.game.images['big_boulder']))
-            avoid =[[50, -425, 70]]
+            avoid =[[50, -425, 80]]
 
             for i in range(26):
                 x, y = random.randint(0, 245), i * 25 - 900
                 img = random.choice([self.game.images['boulder'], self.game.images['boulder_2']])
                 size = img.get_height() / 2
-  
-                if not any(circles_intersect([item[0] + item[2], item[1] + item[2]], item[2], [x + size, y + size], size) for item in avoid):
-                    self.game.positions.append(Platform(self.game, 'boulder', size, (x, y), img))
-                    avoid.append([x, y, size])
+
+                counter = 0
+                while counter < 10:
+                    counter += 1
+                    if not any(circles_intersect([item[0] + item[2], item[1] + item[2]], item[2], [x + size, y + size], size) for item in avoid):
+                        self.game.positions.append(Platform(self.game, 'boulder', size, (x, y), img))
+                        avoid.append([x, y, size])
+                        break
                     
             amount = [25] * 10 + [19] * 15 + [13] * 20 + [8] * 25
             lilypads = {25 : 'lily_1', 19: 'lily_2', 13: 'lily_3', 8: 'lily_4'}
@@ -181,19 +186,14 @@ class Platforms:
         self.collisions = [[], []]
 
         for platform in self.game.positions:
-            platform.collision_check(self, self.game.feet.pos)
+            platform.collision_check()
         
         if self.game.clicking:
             # Randomly falling platforms
-            if random.randint(0, 8 - self.game.effects['slipchance']) == 0:
-                on_top = [i for sublist in self.collisions for i, value in enumerate(sublist) if value]
-                
+            if random.randint(0, 12 - self.game.effects['slipchance']) == 0:
+                on_top = [i for sublist in self.collisions for i, value in enumerate(sublist) if value and self.game.positions[i].biome == "boulder"]
+
                 # If we are on_top of a platform
                 if len(on_top) != 0:
                     random_platform = random.choice(on_top)
-                    if self.game.positions[random_platform].biome == 'boulder' and self.game.positions[random_platform].timer == 0:
-                        self.game.positions[random_platform].timer = 180
-
-    def footprint(self, pos, img):
-        # This is so that we can add to the platforms
-        self.game.positions.append(Platform(self.game, 'snowy', None, pos, img, reset=False))
+                    self.game.positions[random_platform].opacity = 128
