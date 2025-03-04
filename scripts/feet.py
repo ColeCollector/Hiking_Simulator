@@ -10,6 +10,7 @@ class Feet():
         self.pos_distance = 0
         self.hitbox = [pygame.Rect(85 - 20, 350 - 40, 40, 80),
                        pygame.Rect(185 - 20, 350 - 40, 40, 80)]
+        self.elipse = [[], []]
         self.wet_feet = 0
         self.predicted_velocity = 0
         self.selected = -1
@@ -18,17 +19,17 @@ class Feet():
     
     def click(self):
         if self.selected != -1:  # If a foot is selected
-            self.game.pos = avoid_obstacles(closest_point_on_circle(self.game.pos, self.pos[self.selected], self.game.walk_radius[self.selected]), self.game.platforms.obstacles)
+            self.game.pos = avoid_obstacles(closest_point_on_ellipse(self.game.pos, self.elipse[self.selected]), self.game.platforms.obstacles)
 
         else:  # If a foot is not selected
-            self.distances = [math.hypot(self.game.pos[0] - foot[0], self.game.pos[1] - foot[1]) for foot in self.pos]
+            self.distances = [math.hypot(2 * (self.game.pos[0] - foot[0]), self.game.pos[1] - foot[1]) for foot in self.pos]
             # If the click is outside the circle
-            if all(dist > self.game.walk_radius[i] for i, dist in enumerate(self.distances)):
-                if is_within_circle(self.game.pos, self.pull_pos, round(self.edge_distance/ 15)) or self.pulling:
+            if all(not is_within_ellipse(self.game.pos, self.elipse[i]) for i in range(2)):
+                if is_within_circle(self.game.pos, self.pull_pos, round(self.edge_distance / 15)) or self.pulling:
                     self.pulling = True
                 else:
                     self.selected = self.distances.index(min(self.distances))
-                    self.game.pos = closest_point_on_circle(self.game.pos, self.pos[self.selected], self.game.walk_radius[self.selected])
+                    self.game.pos = closest_point_on_ellipse(self.game.pos, self.elipse[self.selected])
                     
             if not self.pulling:
                 self.game.pos = avoid_obstacles(self.game.pos, self.game.platforms.obstacles)
@@ -75,11 +76,18 @@ class Feet():
 
         # Draw Feet
         for i, foot in enumerate(self.pos):
-            pygame.draw.circle(self.game.screen, "white", foot, self.game.walk_radius[i], 1)
+            #pygame.draw.circle(self.game.screen, "white", foot, self.game.walk_radius[i], 1)
             
             self.hitbox[i] = pygame.Rect(foot[0] - 20, foot[1] - 40, 40, 80)
             #pygame.draw.rect(self.game.screen, "white", self.hitbox[i], 1)
+            #pygame.draw.rect(self.game.screen, "white", pygame.Rect(foot[0] - (self.game.walk_radius[i] + 1) // 2, foot[1] - (self.game.walk_radius[i] + 1), self.game.walk_radius[i] + 1, (self.game.walk_radius[i] + 1) * 2), 1, border_radius=(self.game.walk_radius[i] // 2))
+            self.elipse[i] = pygame.Rect(foot[0] - self.game.walk_radius[i] // 2, 
+                                        foot[1] - self.game.walk_radius[i] - 10, 
+                                        self.game.walk_radius[i], 
+                                        self.game.walk_radius[i] * 2)
             
+            pygame.draw.ellipse(self.game.screen, "white", self.elipse[i], 1)
+
             self.game.screen.blit(self.game.images[f'foot_{i + 1}'], (foot[0] - 38, foot[1] - 38))
         # Draw Wet Feet Text
         if self.wet_feet != 0:

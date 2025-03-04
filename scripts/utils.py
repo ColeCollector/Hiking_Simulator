@@ -16,6 +16,29 @@ def shadow(image, shadowc):
     image.unlock()
     return image
 
+def closest_point_on_ellipse(pos, rect):
+    center = rect.center
+    width, height = rect.width / 2, rect.height / 2  # Semi-axes of the ellipse
+
+    dx = pos[0] - center[0]
+    dy = pos[1] - center[1]
+    
+    # Normalize the distances
+    norm_dx = dx / width
+    norm_dy = dy / height
+    
+    # Find the distance to the point on the ellipse
+    distance = math.sqrt(norm_dx**2 + norm_dy**2)
+
+    # Ensure the point lies on the ellipse by scaling to the boundary
+    ratio = 1 / distance if distance != 0 else 0  # Prevent division by zero
+
+    closest_x = center[0] + norm_dx * ratio * width
+    closest_y = center[1] + norm_dy * ratio * height
+
+    return [closest_x, closest_y]
+
+
 def closest_point_on_circle(pos, center, radius):
     dx = pos[0] - center[0]
     dy = pos[1] - center[1]
@@ -24,6 +47,15 @@ def closest_point_on_circle(pos, center, radius):
     closest_x = center[0] + dx * ratio
     closest_y = center[1] + dy * ratio
     return [closest_x, closest_y]
+
+def is_within_ellipse(pos, rect):
+    center = rect.center
+    a, b = rect.width / 2, rect.height / 2  # Semi-axes of the ellipse
+    
+    dx = (pos[0] - center[0]) / a
+    dy = (pos[1] - center[1]) / b
+
+    return dx**2 + dy**2 <= 1
 
 def is_within_circle(pos, center, radius):
     dx = pos[0] - center[0]

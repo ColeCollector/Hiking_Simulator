@@ -48,7 +48,7 @@ class Game():
         for image in self.images.copy():
             self.images[f"{image}_flipped"] = pygame.transform.flip(self.images[image], True, False)
 
-        self.walk_radius = [40, 40] 
+        self.walk_radius = [50, 50] 
         self.highscore = 0
         self.colors = {'bog':'#ACC16A', 'boulder':'#158BA5', 'snowy':'#E4FFFF', 'beach':'#FDE9BE', 'sewer' : '#404040'}
 
