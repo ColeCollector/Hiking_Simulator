@@ -225,7 +225,7 @@ class Game():
                 show_text(self.screen, str(self.current_biome), (245, 465), "black")
                 
                 self.screen.blit(self.images['highscore'], (2, 14))
-
+                
                 # Outlined Highscore text
                 show_text(self.screen, str(self.highscore), (28, 23), 'black')
                 show_text(self.screen, str(self.highscore), (30, 23), 'black')

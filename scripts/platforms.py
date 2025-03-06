@@ -85,6 +85,10 @@ class Platforms:
         
         self.game.positions.append(Platform(self.game, self.game.biome, None, (0, -700), self.game.images[transitions[self.game.biome]], reset=False))
 
+        # Generating tutorial
+        if self.game.last_biome == None:
+            self.game.positions.append(Platform(self.game, None, None, [41, 110], self.game.images['tutorial']))
+
         # Generating platforms based on the biome
         if self.game.biome == 'boulder':
             self.game.positions.append(Platform(self.game, 'boulder', 80, [50, -425], self.game.images['big_boulder']))

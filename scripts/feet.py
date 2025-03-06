@@ -20,10 +20,12 @@ class Feet():
         self.pull_pos = ((self.pos[0][0] + self.pos[1][0]) // 2, (self.pos[0][1] + self.pos[1][1]) // 2)
     
     def click(self):
-        if self.selected != -1:  # If a foot is selected
+        # If a foot is selected
+        if self.selected != -1:
             self.game.pos = avoid_obstacles(closest_point_on_ellipse(self.game.pos, self.elipse[self.selected]), self.game.platforms.obstacles)
 
-        else:  # If a foot is not selected
+        # If a foot is not selected
+        else:
             self.distances = [math.hypot(2 * (self.game.pos[0] - foot[0]), self.game.pos[1] - foot[1]) for foot in self.pos]
             # If the click is outside the circle
             if all(not is_within_ellipse(self.game.pos, self.elipse[i]) for i in range(2)):
@@ -80,7 +82,7 @@ class Feet():
             trail = calculate_trajectory(self.pull_pos, self.predicted_velocity, self.game.effects['jump'])
 
             for point in trail:
-                pygame.draw.circle(screen, 'dark gray', (int(point[0]), int(point[1])), 3)
+                pygame.draw.circle(screen, 'white', (int(point[0]), int(point[1])), 3)
 
         # Draw bending slingshot rubber band
         pygame.draw.line(screen, 'white', edge1, self.pull_pos, 1)
