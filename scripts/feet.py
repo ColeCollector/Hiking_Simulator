@@ -7,11 +7,13 @@ class Feet():
     def __init__(self, game):
         self.game = game
         self.pos = [[85, 350], [185, 350]]
-        self.pos_distance = 0
         self.hitbox = [pygame.Rect(85 - 20, 350 - 40, 40, 80),
                        pygame.Rect(185 - 20, 350 - 40, 40, 80)]
         self.elipse = [[], []]
         self.wet_feet = 0
+        self.pos_distance = 0
+        self.target = [[85, 350], [185, 350]]
+        self.delta = [[0, 0], [0, 0]]
         self.predicted_velocity = 0
         self.selected = -1
         self.pulling = False
@@ -33,11 +35,21 @@ class Feet():
                     
             if not self.pulling:
                 self.game.pos = avoid_obstacles(self.game.pos, self.game.platforms.obstacles)
-
+    
     def draw(self, screen):
         # Update Feet
         for i, foot in enumerate(self.pos):
-            foot[1] += round(self.game.speed)
+
+            foot[1] += self.game.speed
+            self.target[i][1] += self.game.speed
+            
+            for Θ in range(2):
+                self.delta[Θ][i] = (self.pos[i][Θ] - self.target[i][Θ]) * 0.2
+                
+                if abs(self.delta[Θ][i]) < 0.1: 
+                    self.delta[Θ][i] = 0
+
+                foot[Θ] -= self.delta[Θ][i]
         
         # Draw and calculate slingshot
         p1, p2 = self.pos[0], self.pos[1]
@@ -76,11 +88,9 @@ class Feet():
 
         # Draw Feet
         for i, foot in enumerate(self.pos):
-            #pygame.draw.circle(self.game.screen, "white", foot, self.game.walk_radius[i], 1)
-            
             self.hitbox[i] = pygame.Rect(foot[0] - 20, foot[1] - 40, 40, 80)
             #pygame.draw.rect(self.game.screen, "white", self.hitbox[i], 1)
-            #pygame.draw.rect(self.game.screen, "white", pygame.Rect(foot[0] - (self.game.walk_radius[i] + 1) // 2, foot[1] - (self.game.walk_radius[i] + 1), self.game.walk_radius[i] + 1, (self.game.walk_radius[i] + 1) * 2), 1, border_radius=(self.game.walk_radius[i] // 2))
+
             self.elipse[i] = pygame.Rect(foot[0] - self.game.walk_radius[i] // 2, 
                                         foot[1] - self.game.walk_radius[i] - 10, 
                                         self.game.walk_radius[i], 
@@ -88,7 +98,11 @@ class Feet():
             
             pygame.draw.ellipse(self.game.screen, "white", self.elipse[i], 1)
 
-            self.game.screen.blit(self.game.images[f'foot_{i + 1}'], (foot[0] - 38, foot[1] - 38))
+            if self.delta[1][i] != 0:
+                self.game.screen.blit(self.game.images[f'foot_{i + 1}'], (foot[0] - 38, foot[1] - 44))
+            else:
+                self.game.screen.blit(self.game.images[f'foot_{i + 1}'], (foot[0] - 38, foot[1] - 38))
+
         # Draw Wet Feet Text
         if self.wet_feet != 0:
             self.wet_feet -= 1
@@ -103,20 +117,20 @@ class Feet():
             if self.pulling:
                 self.pulling = False
                 destination = calculate_trajectory(self.pull_pos, self.predicted_velocity, self.game.effects['jump'])[-1]
+                difference = (self.pos[0][1] + self.pos[1][1]) / 2 - destination[1]
 
-                self.game.speed = (350 - max(self.pos[0][1], self.pos[1][1])) / 5
-                difference = min(self.pos[0][1] - destination[1], self.pos[1][1] - destination[1])
-
-                self.pos[0] = avoid_obstacles([self.pos[0][0], self.pos[0][1] - difference - self.game.walk_radius[0]], self.game.platforms.obstacles)
-                self.pos[1] = avoid_obstacles([self.pos[1][0], self.pos[1][1] - difference - self.game.walk_radius[1]], self.game.platforms.obstacles)
+                self.game.stamina -= self.game.effects['stamina'] * 100
+                self.target[0] = avoid_obstacles([self.pos[0][0], self.pos[0][1] - difference], self.game.platforms.obstacles)
+                self.target[1] = avoid_obstacles([self.pos[1][0], self.pos[1][1] - difference], self.game.platforms.obstacles)
 
             elif self.game.game_status == 'game' and self.game.mouse_buttons[0]:
                 self.game.sounds[1 if self.game.current_biome != 'snowy' else 4].play()
-                self.game.speed = (350 - max(self.pos[0][1], self.pos[1][1])) / 15
 
                 self.selected = -1  # Unselect the foot
                 self.pos_distance = math.sqrt((self.pos[1][0] - self.pos[0][0])**2 + (self.pos[1][1] - self.pos[0][1])**2)
-                self.pos[self.distances.index(min(self.distances))] = list(self.game.pos)
+                self.target[self.distances.index(min(self.distances))] = self.game.pos
+
+            self.game.target = 350 - max(self.pos[0][1] - (self.pos[0][1] - self.target[0][1]), self.pos[1][1] - (self.pos[1][1] - self.target[1][1]))
 
         elif self.pulling:
             self.pull_pos = list(event.pos)

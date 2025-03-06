@@ -20,7 +20,7 @@ class Platform:
         self.reset = reset
 
     def update(self):
-        self.pos[1] += round(self.game.speed)
+        self.pos[1] += self.game.speed
 
         if self.opacity == 0:
             self.game.positions.remove(self)

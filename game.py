@@ -35,7 +35,7 @@ class Game():
         files = os.listdir('data/images')
         self.images = {'foot_1' : pygame.transform.flip(pygame.image.load('data/images/shoes/foot.png'), True, False),
                        'foot_2' : pygame.image.load('data/images/shoes/foot.png')}
-
+        
         self.shadows = {}
 
         for file in files:
@@ -58,6 +58,9 @@ class Game():
     def reset(self):
         self.feet = Feet(self)
         self.speed = 0 
+        self.target = 0
+        self.camera_y = 0
+        self.velocity = 0
         self.score = 0
         self.scale = 0
         self.temp = 150
@@ -131,11 +134,10 @@ class Game():
                 
                 # Fill the self.screen with a color
                 self.screen.fill(self.bgcolor)
-
-                # Giving a self.speed to all the objects so they move
-                self.speed *= 0.9
-                if self.speed < 0.1: self.speed = 0
                 
+                self.speed = max(round((self.target - self.speed) * 0.1), 0)
+                self.target -= self.speed
+
                 self.score += self.speed
 
                 self.platforms.update()
