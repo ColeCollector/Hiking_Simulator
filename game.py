@@ -3,6 +3,7 @@ import pygame, random, sys, os
 from scripts.platforms import Platforms
 from scripts.feet import Feet
 from scripts.menu import Menu
+from scripts.GUI import GUI
 from scripts.utils import *
 
 # self.screen Size
@@ -50,7 +51,13 @@ class Game():
 
         self.walk_radius = [50, 50] 
         self.highscore = 0
-        self.colors = {'bog':'#ACC16A', 'boulder':'#158BA5', 'snowy':'#E4FFFF', 'beach':'#FDE9BE', 'sewer' : '#404040'}
+
+        self.biome_stats = {'boulder' : {'color' : '#158BA5', 'transition' : 'transition_1', 'temp' :  0.00},
+                            'snowy'   : {'color' : '#E4FFFF', 'transition' : 'transition_2', 'temp' : -0.05},
+                            'bog'     : {'color' : '#ACC16A', 'transition' : 'transition_3', 'temp' :  0.00},
+                            'beach'   : {'color' : '#FDE9BE', 'transition' : 'transition_4', 'temp' :  0.05},
+                            'sewer'   : {'color' : '#404040', 'transition' : 'transition_5', 'temp' :  0.00}
+                            }
 
         self.reset()
         self.game_status = 'menu'
@@ -69,7 +76,7 @@ class Game():
         self.transition = -70
         self.dead = 0
 
-        self.biomes = list(self.colors.keys())
+        self.biomes = list(self.biome_stats.keys())
         self.biome = random.choice(self.biomes)
         self.biome = 'bog'
 
@@ -85,10 +92,12 @@ class Game():
         self.effects = {
             'slipchance' : 0, 
             'temp'       : 0, 
-            'regen'      : 0.15, 
+            'regen'      : 0.12, 
             'stamina'    : 0.08,
             'jump'       : 5
         }
+
+        self.gui = GUI(self)
 
     def run(self):
         while True:
@@ -115,8 +124,8 @@ class Game():
 
             elif self.game_status == 'game':
                 # Changing the bg after the transition has past
-                if self.bgcolor != self.colors[self.biome] and (self.score / 50 > self.last_biome_switch + 14):
-                    self.bgcolor = self.colors[self.biome]
+                if self.bgcolor != self.biome_stats[self.biome]['color'] and (self.score / 50 > self.last_biome_switch + 14):
+                    self.bgcolor = self.biome_stats[self.biome]['color']
 
                 self.current_biome = self.last_biome if self.last_biome_switch + 10 > self.score / 50 else self.biome
 
@@ -125,7 +134,7 @@ class Game():
                     self.last_biome = self.biome
                     
                     # Chooses a random biome (other than the currentbiome)
-                    self.biomes = list(self.colors.keys())
+                    self.biomes = list(self.biome_stats.keys())
                     self.biomes.remove(self.biome)
                     self.biome = random.choice(self.biomes)
                     self.last_biome_switch = self.biome_switch
@@ -137,7 +146,6 @@ class Game():
                 
                 self.speed = max(round((self.target - self.speed) * 0.1), 0)
                 self.target -= self.speed
-
                 self.score += self.speed
 
                 self.platforms.update()
@@ -146,22 +154,8 @@ class Game():
 
                 self.feet.draw(self.screen)
 
-                if self.snowflakes != []:
-                    # Update and draw snowflakes
-                    for flake in self.snowflakes[::-1]:
-                        flake[0] -= flake[2] * (flake[3] / 2)
-                        flake[1] += flake[2]
-                        if flake[1] > HEIGHT or flake[0] < 0:
-                            if self.current_biome == 'snowy' :
-                                flake[0] = random.randint(0, WIDTH)
-                                flake[1] = random.randint(-20, -5)
-                            else:
-                                self.snowflakes.remove(flake)
-
-                        pygame.draw.circle(self.screen, 'white', (flake[0], flake[1]), flake[3])
-
                 for tree in self.platforms.trees:
-                    self.screen.blit(tree[0],tree[1])
+                    self.screen.blit(tree[0], tree[1])
                 
                 if self.scale == 0:
                     self.feet.handle_collisions()
@@ -182,12 +176,32 @@ class Game():
                 elif self.stamina < 300 and self.current_biome != 'snowy':
                     self.stamina += self.effects['regen']
 
-                if self.current_biome == 'beach':
-                    self.temp += 0.05
+                if self.biome_stats[self.biome]['temp'] != 0:
+                    self.temp += self.biome_stats[self.biome]['temp']
+
+                else:
+                    # Bringing temp level back to middle
+                    if self.temp > 150: 
+                        self.temp -= min(0.025, self.temp - 150)
+
+                    elif self.temp < 150:
+                        self.temp += 0.025
+
+                if self.snowflakes != []:
+                    # Update and draw snowflakes
+                    for flake in self.snowflakes[::-1]:
+                        flake[0] -= flake[2] * (flake[3] / 2)
+                        flake[1] += flake[2]
+                        if flake[1] > HEIGHT or flake[0] < 0:
+                            if self.current_biome == 'snowy' :
+                                flake[0] = random.randint(0, WIDTH)
+                                flake[1] = random.randint(-20, -5)
+                            else:
+                                self.snowflakes.remove(flake)
+
+                        pygame.draw.circle(self.screen, 'white', (flake[0], flake[1]), flake[3])
 
                 elif self.current_biome == 'snowy':
-                    self.temp -= 0.05
-                    
                     # Generate Snowflakes
                     if self.snowflakes == []:
                         for _ in range(100):  # Number of snowflakes
@@ -198,50 +212,8 @@ class Game():
                             angle = random.randint(2, 4)
                             self.snowflakes.append([x, y, speed, size, angle])
                 
-                # Bringing temp level back to middle
-                elif self.temp > 150: 
-                    self.temp -= min(0.025, self.temp - 150)
-
-                elif self.temp < 150:
-                    self.temp += 0.025
-
-                # Mouse Position Circle
-                pygame.draw.circle(self.screen, 'white', self.pos, 10, 1)
-                pygame.draw.circle(self.screen, 'white', self.pos, 2)
+                self.gui.draw()
                 
-                # Stamina bar
-                pygame.draw.rect(self.screen, "#133672", (59, 44, 152, 12))
-                pygame.draw.rect(self.screen, "#2B95FF", (60, 45, self.stamina / 2, 10))
-
-                # Temperature bar
-                pygame.draw.rect(self.screen, "#AFAFAF", (59, 64, 152, 12))
-                pygame.draw.rect(self.screen, "#E00000", (60, 65, min(self.temp + self.effects['temp'], 300) / 2, 10))
-                self.screen.blit(self.images['bar'], (36, 39))
-
-                #-100 to 100 degrees celcius
-                show_text(self.screen, f"{str(round((self.temp + self.effects['temp'] - 150) / 3))}°C", (113, 86), "white")
-
-                # Displaying biome in bottom right (for testing)
-                show_text(self.screen, str(self.current_biome), (245, 465), "black")
-                
-                self.screen.blit(self.images['highscore'], (2, 14))
-                
-                # Outlined Highscore text
-                show_text(self.screen, str(self.highscore), (28, 23), 'black')
-                show_text(self.screen, str(self.highscore), (30, 23), 'black')
-                show_text(self.screen, str(self.highscore), (28, 21), 'black')
-                show_text(self.screen, str(self.highscore), (30, 21), 'black')
-                show_text(self.screen, str(self.highscore), (29, 22), 'white')
-
-                # Displaying score
-                show_text(self.screen, str(int(self.score / 50)), (137, 24), "black", 32)
-                show_text(self.screen, str(int(self.score / 50)), (135, 22), "white", 32)
-
-                # Visual effect when you get super hot
-                heatwave_img = self.images['heatwave'].convert_alpha()
-                heatwave_img.set_alpha(min(50, max(0, (self.temp + self.effects['temp'] - 200) * 0.5))) 
-                self.screen.blit(heatwave_img, (0, 0))
-
                 # You die if you run out of stamina
                 if self.stamina <= 0 or self.transition == 70:   
                     self.transition = min(70, self.transition + 1)

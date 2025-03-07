@@ -16,7 +16,9 @@ class Feet():
         self.delta = [[0, 0], [0, 0]]
         self.predicted_velocity = 0
         self.selected = -1
+        self.collisions = [True, True]
         self.pulling = False
+        self.jump_protection = False
         self.pull_pos = ((self.pos[0][0] + self.pos[1][0]) // 2, (self.pos[0][1] + self.pos[1][1]) // 2)
     
     def click(self):
@@ -49,6 +51,7 @@ class Feet():
                 self.delta[Θ][i] = (self.pos[i][Θ] - self.target[i][Θ]) * 0.2
                 
                 if abs(self.delta[Θ][i]) < 0.1: 
+                    self.jump_protection = False
                     self.delta[Θ][i] = 0
 
                 foot[Θ] -= self.delta[Θ][i]
@@ -75,7 +78,7 @@ class Feet():
             dx = (self.pos[0][0] + self.pos[1][0]) / 2 - self.pull_pos[0]
             dy = (self.pos[0][1] + self.pos[1][1]) / 2 - self.pull_pos[1]
 
-            force = min(math.hypot(dx, dy) / 2, 25)  # Limit force
+            force = min(math.hypot(dx, dy) / 2, 30)  # Limit force
             angle = math.atan2(dy, dx)
             
             self.predicted_velocity = [math.cos(angle) * force, math.sin(angle) * force]
@@ -87,6 +90,9 @@ class Feet():
         # Draw bending slingshot rubber band
         pygame.draw.line(screen, 'white', edge1, self.pull_pos, 1)
         pygame.draw.line(screen, 'white', edge2, self.pull_pos, 1)
+        
+        # Defining Collisions with Platforms
+        self.collisions = [any(self.game.platforms.collisions[0]), any(self.game.platforms.collisions[1])]
 
         # Draw Feet
         for i, foot in enumerate(self.pos):
@@ -98,12 +104,13 @@ class Feet():
                                         self.game.walk_radius[i], 
                                         self.game.walk_radius[i] * 2)
             
-            pygame.draw.ellipse(self.game.screen, "white", self.elipse[i], 1)
+            # Red if not colliding
+            if self.collisions[i] or self.game.current_biome == None: pygame.draw.ellipse(self.game.screen, "white", self.elipse[i], 1)
+            else:                  pygame.draw.ellipse(self.game.screen, "red", self.elipse[i], 1)
 
-            if self.delta[1][i] != 0:
-                self.game.screen.blit(self.game.images[f'foot_{i + 1}'], (foot[0] - 38, foot[1] - 44))
-            else:
-                self.game.screen.blit(self.game.images[f'foot_{i + 1}'], (foot[0] - 38, foot[1] - 38))
+            # Jumping Animaition
+            if self.delta[1][i] != 0: self.game.screen.blit(self.game.images[f'foot_{i + 1}'], (foot[0] - 38, foot[1] - 44))
+            else:                     self.game.screen.blit(self.game.images[f'foot_{i + 1}'], (foot[0] - 38, foot[1] - 38))
 
         # Draw Wet Feet Text
         if self.wet_feet != 0:
@@ -118,12 +125,15 @@ class Feet():
             self.game.clicking = True
             if self.pulling:
                 self.pulling = False
+                self.jump_protection = True
+
                 destination = calculate_trajectory(self.pull_pos, self.predicted_velocity, self.game.effects['jump'])[-1]
-                difference = (self.pos[0][1] + self.pos[1][1]) / 2 - destination[1]
+                difference = [(self.pos[0][0] + self.pos[1][0]) / 2 - destination[0],
+                              (self.pos[0][1] + self.pos[1][1]) / 2 - destination[1]]
 
                 self.game.stamina -= self.game.effects['stamina'] * 100
-                self.target[0] = avoid_obstacles([self.pos[0][0], self.pos[0][1] - difference], self.game.platforms.obstacles)
-                self.target[1] = avoid_obstacles([self.pos[1][0], self.pos[1][1] - difference], self.game.platforms.obstacles)
+                self.target[0] = avoid_obstacles([self.pos[0][0] - difference[0], self.pos[0][1] - difference[1]], self.game.platforms.obstacles)
+                self.target[1] = avoid_obstacles([self.pos[1][0] - difference[0], self.pos[1][1] - difference[1]], self.game.platforms.obstacles)
 
             elif self.game.game_status == 'game' and self.game.mouse_buttons[0]:
                 self.game.sounds[1 if self.game.current_biome != 'snowy' else 4].play()
@@ -139,10 +149,9 @@ class Feet():
             self.pull_pos[0] /= 2
             self.pull_pos[1] /= 2
         
-
     def handle_collisions(self):
         # If we are not on any platform
-        if (not any(self.game.platforms.collisions[0]) or not any(self.game.platforms.collisions[1])) and self.game.current_biome not in ['beach', None]:
+        if (not self.collisions[0] or not self.collisions[1]) and self.game.current_biome not in ['beach', None] and not self.jump_protection:
             if self.game.current_biome == 'snowy':
                 # Add footprints and increase hurt delay in snowy biome
                 self.game.positions.append(Platform(self.game, 'snowy', None, [(self.pos[0][0] - 38), (self.pos[0][1] - 38)], shadow(self.game.images['foot_1'], (160, 160, 160)), reset=False))

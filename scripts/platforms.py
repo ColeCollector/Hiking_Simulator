@@ -77,13 +77,7 @@ class Platforms:
         self.obstacles = []
         self.collisions = []
         
-        transitions = {'boulder' : 'transition_1', 
-                       'snowy'   : 'transition_2',
-                       'bog'     : 'transition_3',
-                       'beach'   : 'transition_4',
-                       'sewer'  : 'transition_5'}
-        
-        self.game.positions.append(Platform(self.game, self.game.biome, None, (0, -700), self.game.images[transitions[self.game.biome]], reset=False))
+        self.game.positions.append(Platform(self.game, self.game.biome, None, (0, -700), self.game.images[self.game.biome_stats[self.game.biome]['transition']], reset=False))
 
         # Generating tutorial
         if self.game.last_biome == None:
@@ -127,9 +121,9 @@ class Platforms:
             for i in range(20):
                 image = image_variety(self.game.images, 'tree')
                 if i % 2 == 0:
-                    x = random.randint(270 - 43 - image.get_height(), 270 + 60 - image.get_height())
+                    x = random.randint(270 - 20 - image.get_height(), 270 + 60 - image.get_height())
                 else: 
-                    x = random.randint(-60, 43)
+                    x = random.randint(-60, 20)
 
                 y = (480 - (i * ((480 + 200) / 22)) - 700 - image.get_height())
                 self.game.positions.append(Platform(self.game, 'bog', None, [x, y], image)) 
