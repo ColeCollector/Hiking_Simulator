@@ -27,7 +27,8 @@ class GUI:
         show_text(self.game.screen, str(self.game.current_biome), (245, 465), "black")
         
         self.game.screen.blit(self.game.images['highscore'], (2, 14))
-        
+        self.game.screen.blit(self.game.images['settings'], (231, 5))
+
         # Outlined Highscore text
         show_text(self.game.screen, str(self.game.highscore), (28, 23), 'black')
         show_text(self.game.screen, str(self.game.highscore), (30, 23), 'black')

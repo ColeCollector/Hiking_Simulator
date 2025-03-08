@@ -34,9 +34,8 @@ class Game():
         self.sounds[4].set_volume(0.1)
 
         files = os.listdir('data/images')
-        self.images = {'foot_1' : pygame.transform.flip(pygame.image.load('data/images/shoes/foot.png'), True, False),
-                       'foot_2' : pygame.image.load('data/images/shoes/foot.png')}
-        
+
+        self.images = {}
         self.shadows = {}
 
         for file in files:
@@ -51,6 +50,7 @@ class Game():
 
         self.walk_radius = [50, 50] 
         self.highscore = 0
+        self.score = 0
 
         self.biome_stats = {'boulder' : {'color' : '#158BA5', 'transition' : 'transition_1', 'temp' :  0.00},
                             'snowy'   : {'color' : '#E4FFFF', 'transition' : 'transition_2', 'temp' : -0.05},
@@ -58,11 +58,19 @@ class Game():
                             'beach'   : {'color' : '#FDE9BE', 'transition' : 'transition_4', 'temp' :  0.05},
                             'sewer'   : {'color' : '#404040', 'transition' : 'transition_5', 'temp' :  0.00}
                             }
+        
+        self.default_effects = {}
+
+        self.overlay = pygame.Surface((WIDTH / 2, HEIGHT / 2), pygame.SRCALPHA)
+        self.overlay.fill((0, 0, 0, 192))
 
         self.reset()
         self.game_status = 'menu'
 
     def reset(self):
+        if self.highscore < self.score:
+            self.highscore = round(self.score / 50)
+
         self.feet = Feet(self)
         self.speed = 0 
         self.target = 0
@@ -89,13 +97,7 @@ class Game():
         self.positions = []
         self.platforms = Platforms(self)
 
-        self.effects = {
-            'slipchance' : 0, 
-            'temp'       : 0, 
-            'regen'      : 0.12, 
-            'stamina'    : 0.08,
-            'jump'       : 5
-        }
+        self.effects = self.default_effects
 
         self.gui = GUI(self)
 
@@ -109,7 +111,11 @@ class Game():
             self.mouse_buttons = pygame.mouse.get_pressed()
             
             if self.game_status == 'game' and self.mouse_buttons[0]:  # If left mouse button is pressed
-                self.feet.click()
+                if is_within_circle(self.pos, (231 + 17, 5 + 17), 17):
+                    self.game_status = 'settings'
+                    first_run = True
+                else:
+                    self.feet.click()
             
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -121,6 +127,27 @@ class Game():
 
             if self.game_status == 'menu':
                 Menu(self)
+                self.reset()
+
+            if self.game_status == 'settings':
+                if first_run:
+                    first_run = False
+                    self.screen.blit(self.overlay, (0, 0))
+
+                for x, label in enumerate(['Restart', 'Menu', 'Resume']):
+                    pygame.draw.rect(self.screen, "#000000", (59, 176 + 35 * x, 151, 30))
+                    show_text(self.screen, label, (134, 191 + 35 * x), 'white')
+
+                if self.clicking:
+                    if pygame.Rect(59, 176 + 35 + 35, 151, 30).collidepoint(self.pos) :
+                        self.game_status = 'game'
+
+                    elif pygame.Rect(59, 176 + 35, 151, 30).collidepoint(self.pos):
+                        self.game_status = 'menu'
+
+                    elif pygame.Rect(59, 176, 151, 30).collidepoint(self.pos):
+                        self.game_status = 'game'
+                        self.reset()
 
             elif self.game_status == 'game':
                 # Changing the bg after the transition has past
@@ -227,12 +254,6 @@ class Game():
                         self.transition = min(70, self.transition + 1)
 
                     if self.dead > 80:
-                        # Resetting everything
-                        if self.feet.wet_feet != 0: self.effects['temp'] += 30
-
-                        if self.highscore < self.score:
-                            self.highscore = round(self.score / 50)
-
                         self.reset()
 
                 # The black circular transition
