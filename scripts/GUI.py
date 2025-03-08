@@ -7,10 +7,6 @@ class GUI:
         self.game = game
 
     def draw(self):
-        # Mouse Position Circle
-        pygame.draw.circle(self.game.screen, 'white', self.game.pos, 10, 1)
-        pygame.draw.circle(self.game.screen, 'white', self.game.pos, 2)
-        
         # Stamina bar
         pygame.draw.rect(self.game.screen, "#133672", (59, 44, 152, 12))
         pygame.draw.rect(self.game.screen, "#2B95FF", (60, 45, self.game.stamina / 2, 10))
@@ -40,6 +36,10 @@ class GUI:
         show_text(self.game.screen, str(int(self.game.score / 50)), (137, 24), "black", 32)
         show_text(self.game.screen, str(int(self.game.score / 50)), (135, 22), "white", 32)
 
+        # Mouse Position Circle
+        pygame.draw.circle(self.game.screen, 'white', self.game.pos, 10, 1)
+        pygame.draw.circle(self.game.screen, 'white', self.game.pos, 2)
+        
         # Visual effect when you get super hot
         heatwave_img = self.game.images['heatwave'].convert_alpha()
         heatwave_img.set_alpha(min(50, max(0, (self.game.temp + self.game.effects['temp'] - 200) * 0.5))) 

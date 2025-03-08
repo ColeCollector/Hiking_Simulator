@@ -105,7 +105,7 @@ class Feet():
                                         self.game.walk_radius[i] * 2)
             
             # Red if not colliding
-            if self.collisions[i] or self.game.current_biome == None: pygame.draw.ellipse(self.game.screen, "white", self.elipse[i], 1)
+            if self.collisions[i] or self.game.current_biome in [None, 'snowy', 'beach']: pygame.draw.ellipse(self.game.screen, "white", self.elipse[i], 1)
             else:                  pygame.draw.ellipse(self.game.screen, "red", self.elipse[i], 1)
 
             # Jumping Animaition
@@ -120,34 +120,28 @@ class Feet():
             show_text(self.game.screen, "Wet Feet", (80, 106), '#3696BC')
             show_text(self.game.screen, "Wet Feet", (80, 105), '#3ED1DC')
 
-    def handle_event(self, event):
-        if event.type == pygame.MOUSEBUTTONUP and event.button == 1:
-            self.game.clicking = True
-            if self.pulling:
-                self.pulling = False
-                self.jump_protection = True
+    def handle_event(self):
 
-                destination = calculate_trajectory(self.pull_pos, self.predicted_velocity, self.game.effects['jump'])[-1]
-                difference = [(self.pos[0][0] + self.pos[1][0]) / 2 - destination[0],
-                              (self.pos[0][1] + self.pos[1][1]) / 2 - destination[1]]
+        if self.pulling:
+            self.pulling = False
+            self.jump_protection = True
 
-                self.game.stamina -= self.game.effects['stamina'] * 100
-                self.target[0] = avoid_obstacles([self.pos[0][0] - difference[0], self.pos[0][1] - difference[1]], self.game.platforms.obstacles)
-                self.target[1] = avoid_obstacles([self.pos[1][0] - difference[0], self.pos[1][1] - difference[1]], self.game.platforms.obstacles)
+            destination = calculate_trajectory(self.pull_pos, self.predicted_velocity, self.game.effects['jump'])[-1]
+            difference = [(self.pos[0][0] + self.pos[1][0]) / 2 - destination[0],
+                          (self.pos[0][1] + self.pos[1][1]) / 2 - destination[1]]
 
-            elif self.game.game_status == 'game' and self.game.mouse_buttons[0]:
-                self.game.sounds[1 if self.game.current_biome != 'snowy' else 4].play()
+            self.game.stamina -= self.game.effects['stamina'] * 100
+            self.target[0] = avoid_obstacles([self.pos[0][0] - difference[0], self.pos[0][1] - difference[1]], self.game.platforms.obstacles)
+            self.target[1] = avoid_obstacles([self.pos[1][0] - difference[0], self.pos[1][1] - difference[1]], self.game.platforms.obstacles)
 
-                self.selected = -1  # Unselect the foot
-                self.pos_distance = math.sqrt((self.pos[1][0] - self.pos[0][0])**2 + (self.pos[1][1] - self.pos[0][1])**2)
-                self.target[self.distances.index(min(self.distances))] = self.game.pos
+        elif self.game.mouse_buttons[0]:
+            self.game.sounds[1 if self.game.current_biome != 'snowy' else 4].play()
 
-            self.game.target = 350 - max(self.pos[0][1] - (self.pos[0][1] - self.target[0][1]), self.pos[1][1] - (self.pos[1][1] - self.target[1][1]))
+            self.selected = -1  # Unselect the foot
+            self.pos_distance = math.sqrt((self.pos[1][0] - self.pos[0][0])**2 + (self.pos[1][1] - self.pos[0][1])**2)
+            self.target[self.distances.index(min(self.distances))] = self.game.pos
 
-        elif self.pulling:
-            self.pull_pos = list(event.pos)
-            self.pull_pos[0] /= 2
-            self.pull_pos[1] /= 2
+        self.game.target = 350 - max(self.pos[0][1] - (self.pos[0][1] - self.target[0][1]), self.pos[1][1] - (self.pos[1][1] - self.target[1][1]))
         
     def handle_collisions(self):
         # If we are not on any platform
