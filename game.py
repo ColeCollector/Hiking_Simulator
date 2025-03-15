@@ -87,7 +87,7 @@ class Game():
 
         self.biomes = list(self.biome_stats.keys())
         self.biome = random.choice(self.biomes)
-        #self.biome = 'bog'
+        self.biome = 'bog'
 
         self.biome_switch = random.randint(25, 40)
         self.last_biome_switch = 0
@@ -187,9 +187,6 @@ class Game():
         self.platforms.collision_check()
 
         self.feet.draw(self.screen)
-
-        for tree in self.platforms.trees:
-            self.screen.blit(tree[0], tree[1])
         
         if self.scale == 0:
             self.feet.handle_collisions()
@@ -237,14 +234,13 @@ class Game():
 
         elif self.current_biome == 'snowy':
             # Generate Snowflakes
-            if self.snowflakes == []:
-                for _ in range(100):  # Number of snowflakes
-                    x = random.randint(0, WIDTH + 500)
-                    y = random.randint(-200, 0)
-                    speed = random.randint(2, 4)
-                    size = random.randint(2, 4)
-                    angle = random.randint(2, 4)
-                    self.snowflakes.append([x, y, speed, size, angle])
+            for _ in range(75):  # Number of snowflakes
+                x = random.randint(0, WIDTH + 500)
+                y = random.randint(-200, 0)
+                speed = random.randint(2, 4)
+                size = random.randint(2, 4)
+                angle = random.randint(2, 4)
+                self.snowflakes.append([x, y, speed, size, angle])
         
         self.gui.draw()
         

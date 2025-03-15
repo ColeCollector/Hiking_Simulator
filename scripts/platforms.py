@@ -115,19 +115,25 @@ class Platforms:
             choices = [choice.replace('.png', '') for choice in os.listdir('data/images/bog_decor')]
 
             self.biome_builder_2('bog', 60, choices, [10, 6, 4, 3, 2, 2, 6, 6, 6, 6, 6, 6, 20, 20])
-            self.biome_builder_1('bog', 2, [47, 200], 'log', [75, 100]) 
-            self.biome_builder_1('bog', 8, [50, 10], 'ladder', [50, 100], True)     
+            
+            #self.biome_builder_1('bog', 10, [47, 200], 'log', [75, 100]) 
+            #self.biome_builder_1('bog', 8, [50, 10], 'ladder', [50, 100], True)   
 
-            for i in range(20):
-                image = image_variety(self.game.images, 'tree')
-                if i % 2 == 0:
-                    x = random.randint(270 - 20 - image.get_height(), 270 + 60 - image.get_height())
-                else: 
-                    x = random.randint(-60, 20)
+            def generate_ladders(y):
+                self.game.positions.append(Platform(self.game, 'bog', None, [270 / 2 - 51, y], image_variety(self.game.images, 'rope')))
+                for i in range(4):
+                    self.game.positions.append(Platform(self.game, 'bog', [102, 30], [270 / 2 - 51, y + 60 * i], image_variety(self.game.images, 'ladder')))
 
-                y = (480 - (i * ((480 + 200) / 22)) - 700 - image.get_height())
-                self.game.positions.append(Platform(self.game, 'bog', None, [x, y], image)) 
+            def generate_planks(y):
+                for i in range(2):
+                    self.game.positions.append(Platform(self.game, 'bog', [30, 102], [270 / 2 - 51, y + 180 * i ], image_variety(self.game.images, 'plank')))
 
+            functions = [generate_ladders, generate_planks]
+            random.shuffle(functions)
+
+            for i, func in enumerate(functions):
+                func((480 - (i * ((480 + 200) / 2)) - 700 - 210))
+                
         elif self.game.biome == 'snowy':
             self.biome_builder_2('snowy', 6, ['stick'], [1])
         
@@ -142,15 +148,13 @@ class Platforms:
                 else: 
                     self.game.positions.append(Platform(self.game, 'sewer', [50, 10], [x, y], image_variety(self.game.images, 'sewer_ladder'))) 
 
-    def biome_builder_1(self, biome, amount, size, img, threshold, flipped=False):
+
+    def biome_builder_1(self, biome, amount, size, img, threshold):
         for i in range(amount):
             image = image_variety(self.game.images, img)
-            if flipped and random.randint(0, 1) == 0:
-                x = random.randint(270 - threshold[1] - image.get_height(), 270 - threshold[0] - image.get_height())
-            else: 
-                x = random.randint(threshold[0], threshold[1])
 
-            y = (480 - (i * ((480 + 200) / amount)) - 700 - image.get_height())
+            x = random.randint(threshold[0], threshold[1])
+            y = (480 - (i * ((480 + 200) / amount)) - 700 - size[1])
             self.game.positions.append(Platform(self.game, biome, size, [x, y], image)) 
 
     def biome_builder_2(self, biome, amount, choices=[], weights=None):
@@ -166,18 +170,14 @@ class Platforms:
     
     def render(self):
         self.obstacles = []
-        self.trees = []
 
         # Rendering the decorations first
         for pos in self.game.positions:
-            if pos.img in [self.game.images['tree'], self.game.images["tree_flipped"]]:
-                self.trees.append([pos.img, pos.pos])
-
-            elif pos.radius == None:
+            if pos.radius == None:
                 pos.render()
 
         for pos in self.game.positions:
-            if pos.radius != None and pos.img not in [self.game.images['tree'], self.game.images["tree_flipped"]]:
+            if pos.radius != None:
                 pos.render()
 
     def collision_check(self):
