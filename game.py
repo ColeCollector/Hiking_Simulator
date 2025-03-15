@@ -52,12 +52,11 @@ class Game():
         self.highscore = 0
         self.score = 0
 
-        self.biome_stats = {'boulder' : {'color' : '#158BA5', 'transition' : 'transition_1', 'temp' :  0.00},
-                            'snowy'   : {'color' : '#E4FFFF', 'transition' : 'transition_2', 'temp' : -0.05},
-                            'bog'     : {'color' : '#ACC16A', 'transition' : 'transition_3', 'temp' :  0.00},
-                            'beach'   : {'color' : '#FDE9BE', 'transition' : 'transition_4', 'temp' :  0.05},
-                            'sewer'   : {'color' : '#404040', 'transition' : 'transition_5', 'temp' :  0.00}
-                            }
+        self.biome_stats = {'boulder' : {'color' : '#158BA5', 'transition' : 'transition_1', 'Temp' :  0.00},
+                            'snowy'   : {'color' : '#E4FFFF', 'transition' : 'transition_2', 'Temp' : -0.05},
+                            'bog'     : {'color' : '#ACC16A', 'transition' : 'transition_3', 'Temp' :  0.00},
+                            'beach'   : {'color' : '#FDE9BE', 'transition' : 'transition_4', 'Temp' :  0.05},
+                            'sewer'   : {'color' : '#404040', 'transition' : 'transition_5', 'Temp' :  0.00}}
         
         self.default_effects = {}
 
@@ -201,18 +200,18 @@ class Game():
             self.scale -= 1
 
         # You take damage if temp is too low or high
-        if self.temp + self.effects['temp'] <= 50:
-            self.stamina -= (50 - self.temp + self.effects['temp']) * self.effects['stamina']
+        if self.temp + self.effects['Temp'] <= 50:
+            self.stamina -= (50 - self.temp + self.effects['Temp']) * self.effects['Fatigue']
 
-        elif self.temp + self.effects['temp'] >= 250:
-            self.stamina -= (self.temp + self.effects['temp'] - 250) * self.effects['stamina']
+        elif self.temp + self.effects['Temp'] >= 250:
+            self.stamina -= (self.temp + self.effects['Temp'] - 250) * self.effects['Fatigue']
 
         # Regeneration
         elif self.stamina < 300 and self.current_biome != 'snowy':
-            self.stamina += self.effects['regen']
+            self.stamina += self.effects['Regen']
 
-        if self.biome_stats[self.biome]['temp'] != 0:
-            self.temp += self.biome_stats[self.biome]['temp']
+        if self.biome_stats[self.biome]['Temp'] != 0:
+            self.temp += self.biome_stats[self.biome]['Temp']
 
         else:
             # Bringing temp level back to middle

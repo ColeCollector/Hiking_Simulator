@@ -38,7 +38,6 @@ def closest_point_on_ellipse(pos, rect):
 
     return [closest_x, closest_y]
 
-
 def closest_point_on_circle(pos, center, radius):
     dx = pos[0] - center[0]
     dy = pos[1] - center[1]

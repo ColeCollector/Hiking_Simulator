@@ -188,7 +188,7 @@ class Platforms:
         
         if self.game.clicking:
             # Randomly falling platforms
-            if random.randint(0, 12 - self.game.effects['slipchance']) == 0:
+            if random.randint(0, self.game.effects['Grip']) == 0:
                 on_top = [i for sublist in self.collisions for i, value in enumerate(sublist) if value and self.game.positions[i].biome == "boulder"]
 
                 # If we are on_top of a platform

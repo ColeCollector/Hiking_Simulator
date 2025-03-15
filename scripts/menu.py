@@ -2,10 +2,6 @@ import pygame, math, sys
 
 from scripts.utils import show_text
 
-pygame.mixer.init()
-sounds = [pygame.mixer.Sound('data/sounds/select.wav')]
-sounds[0].set_volume(0.5)
-
 # Calculate the vertices of a hexagon
 def calculate_hexagon_vertices(center, size):
     return [
@@ -32,54 +28,48 @@ def point_in_polygon(point, vertices):
         p1x, p1y = p2x, p2y
     return inside
 
-# Define colors
-bg_color = '#0B1911'
-hexagon_default_color = '#304D30'
-hexagon_hover_color = '#387738'
-hexagon_selected_color = '#EDE9E3'
-hexagon_selected_outline = '#E8AF66'
-hexagon_default_outline = '#163020'
-
-# Hexagon properties
-hexagons = []
-selected = {0:0, 1:0 , 2:0 , 3:0 , 4:0 , 5:0 , 6:0}
-circles = []
-
-for i in range(2):
-    coords = (i*116 + 77, 213)
-    circles.append(coords)
-    vertices = calculate_hexagon_vertices(coords, 35)
-    hexagons.append(vertices)
-
-for i in range(2):
-    coords = (i*116 + 77, 281)
-    circles.append(coords)
-    vertices = calculate_hexagon_vertices(coords, 35)
-    hexagons.append(vertices)
-
-for i in range(3):
-    coords = (135, 179 + 68*i)
-    circles.append(coords)
-    vertices = calculate_hexagon_vertices(coords, 35)
-    hexagons.append(vertices)
-
-invitems = ['Water', 'Band-Aid', 'Left Foot', 'Right Foot', 'Sleeping Bag', 'Spring', 'Hat']
-
 class Menu:
     def __init__(self, game):
+        pygame.mixer.init()
+        self.sounds = [pygame.mixer.Sound('data/sounds/select.wav')]
+        self.sounds[0].set_volume(0.5)
         self.game = game
         self.clicking = False
+
+        self.hexagons = []
+        self.colours = {
+            "dark": '#0B1911',
+            "outline": '#163020',
+            "mid_green": '#304D30',
+            "light_green": '#387738',
+            "whiteish": '#EDE9E3',
+        }
+
+        self.invitems = {
+            'Water' : 0, 
+            'Band-Aid' : 0, 
+            'Left Foot' : 0, 
+            'Right Foot' : 0, 
+            'Spring' : 0, 
+            'Hat' : 0}
+        
+        self.circles = []
+
+        for i in range(6):
+            coords = (50, 85 + 50 * i)
+            self.circles.append(coords)
+            self.hexagons.append(calculate_hexagon_vertices(coords, 25))
 
     def reset(self):
         pygame.mixer.music.pause()
 
         # Resetting any old menu upgrades
         self.game.default_effects = {
-            'slipchance' : 0, 
-            'temp'       : 0, 
-            'regen'      : 0.12, 
-            'stamina'    : 0.08,
-            'jump'       : 5
+            'Grip'       : 12, 
+            'Temp'       : 0, 
+            'Regen'      : 0.12, 
+            'Fatigue'    : 0.08,
+            'Jump Range' : 5
         }
 
         self.game.walk_radius = [50, 50] 
@@ -92,121 +82,146 @@ class Menu:
         self.pos[0] /= 2
         self.pos[1] /= 2
 
-        self.game.screen.fill(bg_color)
+        self.game.screen.fill(self.colours['dark'])
         self.handle_events()
 
-        for x, hexagon in enumerate(hexagons):
-            if selected[x] == 2:
-                color = hexagon_selected_color
+        for x, hexagon in enumerate(self.hexagons):
+            key = list(self.invitems.keys())[x]
+
+            pygame.draw.rect(self.game.screen, self.colours['outline'], (130 - 190 // 2, 85 + x * 50 - 15, 190, 30))
+            show_text(self.game.screen, key, (140, 86 + x * 50), self.colours['mid_green'])
+            show_text(self.game.screen, key, (140, 85 + x * 50), 'white')
+            
+            if self.invitems[key] == 2:
+                color = self.colours['whiteish']
                 outline = 'light blue'
                 
                 if self.clicking == True and point_in_polygon(self.pos, hexagon):
-                    selected[x] -= 2
+                    self.invitems[key] -= 2
 
-            elif selected[x] == 1:
-                color = hexagon_selected_color
-                outline = hexagon_selected_outline
+            elif self.invitems[key] == 1:
+                color = self.colours['whiteish']
+                # Yelow/Orange Colour
+                outline = '#E8AF66'
                 
                 if self.clicking == True and point_in_polygon(self.pos, hexagon):
-                    if sum(selected.values()) < 3:
-                        sounds[0].play()
-                        selected[x] += 1
+                    if sum(self.invitems.values()) < 3:
+                        self.sounds[0].play()
+                        self.invitems[key] += 1
 
-                    elif sum(selected.values()) == 3:
-                        selected[x] -= 1
+                    elif sum(self.invitems.values()) == 3:
+                        self.invitems[key] -= 1
             
             elif point_in_polygon(self.pos, hexagon):
-                if self.clicking == True and sum(selected.values()) < 3:
-                    sounds[0].play()
-                    selected[x] += 1
-                color = hexagon_hover_color
-                outline = hexagon_default_outline
+                if self.clicking == True and sum(self.invitems.values()) < 3:
+                    self.sounds[0].play()
+                    self.invitems[key] += 1
+                color = self.colours['light_green']
+                outline = self.colours['outline']
 
             else: 
-                color = hexagon_default_color 
-                outline = hexagon_default_outline
+                color = self.colours['mid_green'] 
+                outline = self.colours['outline']
 
             # Displaying Hexagons
             pygame.draw.polygon(self.game.screen, color, hexagon, 0)
             pygame.draw.polygon(self.game.screen, outline, hexagon, 5)
-            pygame.draw.circle(self.game.screen, outline, circles[x], 12)
-        
-        if pygame.Rect(85, 363, 100, 25).collidepoint(self.pos):
-            self.game.screen.blit(self.game.images['button_hover'], (85, 363, 100, 25))
-            if self.clicking == True and sum(selected.values()) == 3:
-                self.done_selecting()
+            pygame.draw.circle(self.game.screen, outline, self.circles[x], 12)
+
+        if pygame.Rect(85, 440, 100, 25).collidepoint(self.pos):
+            self.game.screen.blit(self.game.images['button_hover'], (85, 440, 100, 25))
+            if self.clicking == True and sum(self.invitems.values()) == 3:
+                self.apply_perks()
         else:
-            #pygame.draw.rect(screen, hexagon_default_color, (170/2, 676/2, 200/2, 50/2))
-            self.game.screen.blit(self.game.images['button'], (85, 363, 100, 25))
-        
+            self.game.screen.blit(self.game.images['button'], (85, 440, 100, 25))
+
         self.game.screen.blit(self.game.images['perks'], (0, 0))
+        if sum(self.invitems.values()) == 2:
+            show_text(self.game.screen, f"YOU HAVE 1 CREDIT", (135, 33), "white")
+        else:
+            show_text(self.game.screen, f"YOU HAVE {3 - sum(self.invitems.values())} CREDITS", (135, 33), "white")
+        show_text(self.game.screen, 'DONE', (135, 452), 'white')
 
-        show_text(self.game.screen, "PICK THREE", (138, 98), hexagon_default_color)
-        show_text(self.game.screen, "PICK THREE", (135, 95), "white")
-
-        show_text(self.game.screen, "ITEMS", (138, 123), hexagon_default_color)
-        show_text(self.game.screen, "ITEMS", (135, 120), "white")
-        show_text(self.game.screen, 'DONE', (135, 375), 'white')
-
+        pygame.draw.rect(self.game.screen, self.colours['mid_green'], (135 - 240 // 2, 400 - 30, 240, 60))
+        pygame.draw.rect(self.game.screen, self.colours['outline'], (135 - 230 // 2, 400 - 25, 230, 50))
+        
+        self.stats = self.calculate_effects(False)
+        show_text(self.game.screen, f"Regen   : {round(self.stats['Regen'] * 60, 2)}/s   Fatigue     : {round(self.stats['Fatigue'], 2)}", (135, 390), 'white')
+        show_text(self.game.screen, f"Jump Range : {self.stats['Jump Range'] }   Temp Boost   : {self.stats['Temp']}", (135, 410), 'white')
+        
         self.game.display.blit(pygame.transform.scale(self.game.screen, self.game.display.get_size()), (0, 0))
         pygame.display.flip()
         self.game.clock.tick(60)
-    
-    def done_selecting(self):
-        # Finding which perk based on which hexagon was selected
-        perks = {key: value for key, value in selected.items() if value != 0}
 
+    def calculate_effects(self, save):
+        temp_effects = self.game.default_effects.copy()
+
+        for perk in self.invitems:
+            strength = self.invitems[perk]
+
+            if perk == 'Left Foot':
+                if strength == 1: 
+                    temp_effects['Grip'] -= 1
+
+            elif perk == 'Right Foot':
+                if strength == 1: 
+                    temp_effects['Grip'] -= 1
+                
+            elif perk == 'Water':
+                # + 8 % Regeneration
+                # - 2 Walk Radius
+                temp_effects['Regen'] += (temp_effects['Regen'] / 8) * strength
+
+            elif perk == 'Hat':
+                # + 15°C
+                temp_effects['Temp'] += 15 * strength
+
+            elif perk == 'Band-Aid':
+                # - 5 % Fatigue Reduction
+                temp_effects['Fatigue'] -= (temp_effects['Fatigue'] / 5) * strength
+
+            elif perk == 'Spring':
+                if strength == 1:
+                    # + 17 % Jump Range
+                    temp_effects['Jump Range'] += 1
+
+                elif strength == 2:
+                    # + 50 % Jump Range
+                    temp_effects['Jump Range'] += 3
+
+        if save:
+            self.game.default_effects = temp_effects
+
+        return temp_effects
+
+    def apply_perks(self):
         # Applying the perks
-        for value in perks:
-            perk = invitems[value]
-            strength = selected[value]
-            
+        for perk in self.invitems:
+            strength = self.invitems[perk]
+
             if perk == 'Left Foot':
                 self.game.walk_radius[0] += 4 * strength
                 if strength == 1: 
-                    self.game.images['foot_1'] = pygame.transform.flip(pygame.image.load('data/images/shoes/croc.png'), True, False)
-                    self.game.default_effects['slipchance'] += 1
+                    self.game.images['foot_1'] = self.game.images['croc_flipped']
 
                 elif strength == 2: 
-                    self.game.images['foot_1'] = pygame.transform.flip(pygame.image.load('data/images/shoes/boot.png'), True, False)
+                    self.game.images['foot_1'] = self.game.images['boot_flipped']
 
             elif perk == 'Right Foot':
                 self.game.walk_radius[1] += 4 * strength
                 if strength == 1: 
-                    self.game.images['foot_2'] = pygame.image.load('data/images/shoes/croc.png')
-                    self.game.default_effects['slipchance'] += 1
+                    self.game.images['foot_2'] = self.game.images['croc']
 
                 elif strength == 2: 
-                    self.game.images['foot_2'] = pygame.image.load('data/images/shoes/boot.png')
+                    self.game.images['foot_2'] = self.game.images['boot']
                 
             elif perk == 'Water':
                 # + 8 % Regeneration
                 # - 2 Walk Radius
                 self.game.walk_radius[0] -= 2 * strength
                 self.game.walk_radius[1] -= 2 * strength
-                self.game.default_effects['regen'] += (self.game.default_effects['regen'] / 8) * strength
-
-            elif perk == 'Hat':
-                # + 15°C
-                self.game.default_effects['temp'] += 15 * strength
-
-            elif perk == 'Band-Aid':
-                # - 5 % Stamina Reduction
-                self.game.default_effects['stamina'] -= (self.game.default_effects['stamina'] / 5) * strength
-
-            elif perk == 'Sleeping Bag':
-                # Gotta add something here...
-                pass
-
-            elif perk == 'Spring':
-                if strength == 1:
-                    # + 17 % Jump Distance
-                    self.game.default_effects['jump'] += 1
-
-                elif strength == 2:
-                    # + 50 % Jump Distance
-                    self.game.default_effects['jump'] += 3
-
+        
+        self.calculate_effects(True)
         self.game.game_status = 'game'
         self.game.reset()
         pygame.mixer.music.unpause()

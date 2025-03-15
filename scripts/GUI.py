@@ -13,11 +13,11 @@ class GUI:
 
         # Temperature bar
         pygame.draw.rect(self.game.screen, "#AFAFAF", (59, 64, 152, 12))
-        pygame.draw.rect(self.game.screen, "#E00000", (60, 65, min(self.game.temp + self.game.effects['temp'], 300) / 2, 10))
+        pygame.draw.rect(self.game.screen, "#E00000", (60, 65, min(self.game.temp + self.game.effects['Temp'], 300) / 2, 10))
         self.game.screen.blit(self.game.images['bar'], (36, 39))
 
         #-100 to 100 degrees celcius
-        show_text(self.game.screen, f"{str(round((self.game.temp + self.game.effects['temp'] - 150) / 3))}°C", (113, 86), "white")
+        show_text(self.game.screen, f"{str(round((self.game.temp + self.game.effects['Temp'] - 150) / 3))}°C", (113, 86), "white")
 
         # Displaying biome in bottom right (for testing)
         show_text(self.game.screen, str(self.game.current_biome), (245, 465), "black")
@@ -42,5 +42,5 @@ class GUI:
         
         # Visual effect when you get super hot
         heatwave_img = self.game.images['heatwave'].convert_alpha()
-        heatwave_img.set_alpha(min(50, max(0, (self.game.temp + self.game.effects['temp'] - 200) * 0.5))) 
+        heatwave_img.set_alpha(min(50, max(0, (self.game.temp + self.game.effects['Temp'] - 200) * 0.5))) 
         self.game.screen.blit(heatwave_img, (0, 0))

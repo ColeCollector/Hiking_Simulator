@@ -82,7 +82,7 @@ class Feet():
             angle = math.atan2(dy, dx)
             
             self.predicted_velocity = [math.cos(angle) * force, math.sin(angle) * force]
-            trail = calculate_trajectory(self.pull_pos, self.predicted_velocity, self.game.effects['jump'])
+            trail = calculate_trajectory(self.pull_pos, self.predicted_velocity, self.game.effects['Jump Range'])
 
             for point in trail:
                 pygame.draw.circle(screen, 'white', (int(point[0]), int(point[1])), 3)
@@ -116,7 +116,7 @@ class Feet():
         if self.wet_feet != 0:
             self.wet_feet -= 1
             if self.wet_feet == 0: 
-                self.game.effects['temp'] += 30
+                self.game.effects['Temp'] += 30
             show_text(self.game.screen, "Wet Feet", (80, 106), '#3696BC')
             show_text(self.game.screen, "Wet Feet", (80, 105), '#3ED1DC')
 
@@ -126,11 +126,11 @@ class Feet():
             self.pulling = False
             self.jump_protection = True
 
-            destination = calculate_trajectory(self.pull_pos, self.predicted_velocity, self.game.effects['jump'])[-1]
+            destination = calculate_trajectory(self.pull_pos, self.predicted_velocity, self.game.effects['Jump Range'])[-1]
             difference = [(self.pos[0][0] + self.pos[1][0]) / 2 - destination[0],
                           (self.pos[0][1] + self.pos[1][1]) / 2 - destination[1]]
 
-            self.game.stamina -= self.game.effects['stamina'] * 100
+            self.game.stamina -= self.game.effects['Fatigue'] * 100
             self.target[0] = avoid_obstacles([self.pos[0][0] - difference[0], self.pos[0][1] - difference[1]], self.game.platforms.obstacles)
             self.target[1] = avoid_obstacles([self.pos[1][0] - difference[0], self.pos[1][1] - difference[1]], self.game.platforms.obstacles)
 
@@ -152,15 +152,15 @@ class Feet():
                 self.game.positions.append(Platform(self.game, 'snowy', None, [(self.pos[1][0] - 38), (self.pos[1][1] - 38)], shadow(self.game.images['foot_2'], (160, 160, 160)), reset=False))
 
                 self.game.scale = 200
-                self.game.stamina -= self.game.effects['stamina'] * 150
+                self.game.stamina -= self.game.effects['Fatigue'] * 150
             else:
                 self.game.scale = 100
-                self.game.stamina -= self.game.effects['stamina'] * 500
+                self.game.stamina -= self.game.effects['Fatigue'] * 500
 
             if self.game.current_biome == 'boulder':
                 self.game.sounds[3].play()
                 if self.wet_feet == 0:
-                    self.game.effects['temp'] -= 30
+                    self.game.effects['Temp'] -= 30
 
                 self.wet_feet = 480
             else:
@@ -170,4 +170,4 @@ class Feet():
         elif self.pos[0][0] > self.pos[1][0] or 180 < self.pos_distance:
             self.game.sounds[2].play()
             self.game.scale = 50
-            self.game.stamina -= self.game.effects['stamina'] * 300
+            self.game.stamina -= self.game.effects['Fatigue'] * 300
