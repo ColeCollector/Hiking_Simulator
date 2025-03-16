@@ -72,7 +72,7 @@ class Menu:
             'Jump Range' : 5
         }
 
-        self.game.walk_radius = [50, 50] 
+        self.game.walk_range = [50, 50] 
         self.game.images['foot_1'] = pygame.transform.flip(pygame.image.load('data/images/shoes/foot.png'), True, False)
         self.game.images['foot_2'] = pygame.image.load('data/images/shoes/foot.png')
 
@@ -88,7 +88,7 @@ class Menu:
         for x, hexagon in enumerate(self.hexagons):
             key = list(self.invitems.keys())[x]
 
-            pygame.draw.rect(self.game.screen, self.colours['outline'], (130 - 190 // 2, 85 + x * 50 - 15, 190, 30))
+            pygame.draw.rect(self.game.screen, self.colours['outline'], (140 - 200 // 2, 85 + x * 50 - 15, 200, 30))
             show_text(self.game.screen, key, (140, 86 + x * 50), self.colours['mid_green'])
             show_text(self.game.screen, key, (140, 85 + x * 50), 'white')
             
@@ -105,15 +105,15 @@ class Menu:
                 outline = '#E8AF66'
                 
                 if self.clicking == True and point_in_polygon(self.pos, hexagon):
-                    if sum(self.invitems.values()) < 3:
+                    if sum(self.invitems.values()) < 5:
                         self.sounds[0].play()
                         self.invitems[key] += 1
 
-                    elif sum(self.invitems.values()) == 3:
+                    elif sum(self.invitems.values()) == 5:
                         self.invitems[key] -= 1
             
             elif point_in_polygon(self.pos, hexagon):
-                if self.clicking == True and sum(self.invitems.values()) < 3:
+                if self.clicking == True and sum(self.invitems.values()) < 5:
                     self.sounds[0].play()
                     self.invitems[key] += 1
                 color = self.colours['light_green']
@@ -130,7 +130,7 @@ class Menu:
 
         if pygame.Rect(85, 440, 100, 25).collidepoint(self.pos):
             self.game.screen.blit(self.game.images['button_hover'], (85, 440, 100, 25))
-            if self.clicking == True and sum(self.invitems.values()) == 3:
+            if self.clicking == True and sum(self.invitems.values()) == 5:
                 self.apply_perks()
         else:
             self.game.screen.blit(self.game.images['button'], (85, 440, 100, 25))
@@ -139,7 +139,7 @@ class Menu:
         if sum(self.invitems.values()) == 2:
             show_text(self.game.screen, f"YOU HAVE 1 CREDIT", (135, 33), "white")
         else:
-            show_text(self.game.screen, f"YOU HAVE {3 - sum(self.invitems.values())} CREDITS", (135, 33), "white")
+            show_text(self.game.screen, f"YOU HAVE {5 - sum(self.invitems.values())} CREDITS", (135, 33), "white")
         show_text(self.game.screen, 'DONE', (135, 452), 'white')
 
         pygame.draw.rect(self.game.screen, self.colours['mid_green'], (135 - 240 // 2, 400 - 30, 240, 60))
@@ -147,7 +147,7 @@ class Menu:
         
         self.stats = self.calculate_effects(False)
         show_text(self.game.screen, f"Regen   : {round(self.stats['Regen'] * 60, 2)}/s   Fatigue     : {round(self.stats['Fatigue'], 2)}", (135, 390), 'white')
-        show_text(self.game.screen, f"Jump Range : {self.stats['Jump Range'] }   Temp Boost   : {self.stats['Temp']}", (135, 410), 'white')
+        show_text(self.game.screen, f"Jump Range : {self.stats['Jump Range'] }   Temp Boost  : {self.stats['Temp']}°C", (135, 410), 'white')
         
         self.game.display.blit(pygame.transform.scale(self.game.screen, self.game.display.get_size()), (0, 0))
         pygame.display.flip()
@@ -200,7 +200,7 @@ class Menu:
             strength = self.invitems[perk]
 
             if perk == 'Left Foot':
-                self.game.walk_radius[0] += 4 * strength
+                self.game.walk_range[0] += 4 * strength
                 if strength == 1: 
                     self.game.images['foot_1'] = self.game.images['croc_flipped']
 
@@ -208,7 +208,7 @@ class Menu:
                     self.game.images['foot_1'] = self.game.images['boot_flipped']
 
             elif perk == 'Right Foot':
-                self.game.walk_radius[1] += 4 * strength
+                self.game.walk_range[1] += 4 * strength
                 if strength == 1: 
                     self.game.images['foot_2'] = self.game.images['croc']
 
@@ -218,8 +218,8 @@ class Menu:
             elif perk == 'Water':
                 # + 8 % Regeneration
                 # - 2 Walk Radius
-                self.game.walk_radius[0] -= 2 * strength
-                self.game.walk_radius[1] -= 2 * strength
+                self.game.walk_range[0] -= 2 * strength
+                self.game.walk_range[1] -= 2 * strength
         
         self.calculate_effects(True)
         self.game.game_status = 'game'

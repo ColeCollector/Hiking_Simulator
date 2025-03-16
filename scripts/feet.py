@@ -31,7 +31,7 @@ class Feet():
             self.distances = [math.hypot(2 * (self.game.pos[0] - foot[0]), self.game.pos[1] - foot[1]) for foot in self.pos]
             # If the click is outside the circle
             if all(not is_within_ellipse(self.game.pos, self.elipse[i]) for i in range(2)):
-                if is_within_circle(self.game.pos, self.pull_pos, round(self.edge_distance / 15)) or self.pulling:
+                if is_within_circle(self.game.pos, self.pull_pos, round(self.edge_distance / 10)) or self.pulling:
                     self.pulling = True
                 else:
                     self.selected = self.distances.index(min(self.distances))
@@ -96,21 +96,21 @@ class Feet():
 
         # Draw Feet
         for i, foot in enumerate(self.pos):
-            self.hitbox[i] = pygame.Rect(foot[0] - 20, foot[1] - 40, 40, 80)
+            self.hitbox[i] = pygame.Rect(foot[0] - 15, foot[1] - 35, 30, 70)
             #pygame.draw.rect(self.game.screen, "white", self.hitbox[i], 1)
 
-            self.elipse[i] = pygame.Rect(foot[0] - self.game.walk_radius[i] // 2, 
-                                        foot[1] - self.game.walk_radius[i] - 10, 
-                                        self.game.walk_radius[i], 
-                                        self.game.walk_radius[i] * 2)
+            self.elipse[i] = pygame.Rect(foot[0] - self.game.walk_range[i] // 2, 
+                                        foot[1] - self.game.walk_range[i] - 15, 
+                                        self.game.walk_range[i], 
+                                        self.game.walk_range[i] * 2)
             
             # Red if not colliding
             if self.collisions[i] or self.game.current_biome in [None, 'snowy', 'beach']: pygame.draw.ellipse(self.game.screen, "white", self.elipse[i], 1)
             else:                  pygame.draw.ellipse(self.game.screen, "red", self.elipse[i], 1)
 
             # Jumping Animaition
-            if self.delta[1][i] != 0: self.game.screen.blit(self.game.images[f'foot_{i + 1}'], (foot[0] - 38, foot[1] - 44))
-            else:                     self.game.screen.blit(self.game.images[f'foot_{i + 1}'], (foot[0] - 38, foot[1] - 38))
+            if self.delta[1][i] != 0: self.game.screen.blit(self.game.images[f'foot_{i + 1}'], (foot[0] - 40, foot[1] - 44))
+            else:                     self.game.screen.blit(self.game.images[f'foot_{i + 1}'], (foot[0] - 40, foot[1] - 38))
 
         # Draw Wet Feet Text
         if self.wet_feet != 0:
@@ -121,7 +121,6 @@ class Feet():
             show_text(self.game.screen, "Wet Feet", (80, 105), '#3ED1DC')
 
     def handle_event(self):
-
         if self.pulling:
             self.pulling = False
             self.jump_protection = True

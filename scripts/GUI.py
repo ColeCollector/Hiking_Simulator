@@ -1,10 +1,63 @@
-import pygame
+import pygame, random
 
 from scripts.utils import show_text
+
+
+# self.screen Size
+WIDTH, HEIGHT = 540, 960
 
 class GUI:
     def __init__(self, game):
         self.game = game
+        self.snowflakes = []
+        self.raindrops = []
+        self.rain_biome = ''
+
+    def handle_weather(self):
+        if self.snowflakes != []:
+            # Update and draw snowflakes
+            for flake in self.snowflakes[::-1]:
+                flake[0] -= flake[2] * (flake[3] / 2)
+                flake[1] += flake[2]
+                if flake[1] > HEIGHT / 2 or flake[0] < 0:
+                    if self.game.current_biome == 'snowy' :
+                        flake[0] = random.randint(0, WIDTH + 200)
+                        flake[1] = - 5
+                    else:
+                        self.snowflakes.remove(flake)
+
+                pygame.draw.circle(self.game.screen, 'white', (flake[0], flake[1]), flake[3])
+
+        elif self.game.current_biome == 'snowy':
+            # Generate Snowflakes
+            for _ in range(75):  # Number of snowflakes
+                x = random.randint(0, WIDTH + 500)
+                y = random.randint(-200, 0)
+                speed = random.randint(2, 4)
+                size = random.randint(2, 4)
+                angle = random.randint(2, 4)
+                self.snowflakes.append([x, y, speed, size, angle])
+
+        if self.raindrops != []:
+            # Update and draw snowflakes
+            for drop in self.raindrops[::-1]:
+                drop[0] -= 5
+                drop[1] += 15
+                if drop[1] > HEIGHT / 2 or drop[0] < 0:
+                    if self.game.current_biome == self.rain_biome:
+                        drop[0] = random.randint(0, WIDTH + 200)
+                        drop[1] = - 5
+                    else:
+                        self.raindrops.remove(drop)
+
+                pygame.draw.line(self.game.screen, 'light blue', (drop[0], drop[1]), (drop[0] - 10, drop[1] + 30), 2)
+
+    def generate_rain(self, rain_biome):
+        self.rain_biome = rain_biome
+        for _ in range(100):  # Number of raindrops
+            x = random.randint(0, WIDTH + 500)
+            y = random.randint(-200, 0)
+            self.raindrops.append([x, y])
 
     def draw(self):
         # Stamina bar

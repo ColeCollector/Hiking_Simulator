@@ -48,7 +48,7 @@ class Game():
         for image in self.images.copy():
             self.images[f"{image}_flipped"] = pygame.transform.flip(self.images[image], True, False)
 
-        self.walk_radius = [50, 50] 
+        self.walk_range = [50, 50] 
         self.highscore = 0
         self.score = 0
 
@@ -94,7 +94,6 @@ class Game():
         self.last_biome = None
         self.bgcolor = "gray"
 
-        self.snowflakes = []
         self.positions = []
         self.platforms = Platforms(self)
 
@@ -161,13 +160,21 @@ class Game():
         if self.bgcolor != self.biome_stats[self.biome]['color'] and (self.score / 50 > self.last_biome_switch + 14):
             self.bgcolor = self.biome_stats[self.biome]['color']
 
-        self.current_biome = self.last_biome if self.last_biome_switch + 10 > self.score / 50 else self.biome
+        if self.last_biome_switch + 10 > self.score / 50:
+            self.current_biome = self.last_biome
+
+        elif self.current_biome != self.biome:
+            self.current_biome = self.biome 
+            
+            # Random chance to have rain
+            if self.current_biome not in ['snowy'] and random.randint(0, 3) == 0:
+                self.gui.generate_rain(self.current_biome)
 
         # Switching biomes
         if self.score / 50 > self.biome_switch:
             self.last_biome = self.biome
             
-            # Chooses a random biome (other than the currentbiome)
+            # Chooses a random biome (other than the current biome)
             self.biomes = list(self.biome_stats.keys())
             self.biomes.remove(self.biome)
             self.biome = random.choice(self.biomes)
@@ -207,8 +214,8 @@ class Game():
         elif self.stamina < 300 and self.current_biome != 'snowy':
             self.stamina += self.effects['Regen']
 
-        if self.biome_stats[self.biome]['Temp'] != 0:
-            self.temp += self.biome_stats[self.biome]['Temp']
+        if self.current_biome != None and self.biome_stats[self.current_biome]['Temp'] != 0:
+            self.temp += self.biome_stats[self.current_biome]['Temp']
 
         else:
             # Bringing temp level back to middle
@@ -218,30 +225,7 @@ class Game():
             elif self.temp < 150:
                 self.temp += 0.025
 
-        if self.snowflakes != []:
-            # Update and draw snowflakes
-            for flake in self.snowflakes[::-1]:
-                flake[0] -= flake[2] * (flake[3] / 2)
-                flake[1] += flake[2]
-                if flake[1] > HEIGHT or flake[0] < 0:
-                    if self.current_biome == 'snowy' :
-                        flake[0] = random.randint(0, WIDTH)
-                        flake[1] = random.randint(-20, -5)
-                    else:
-                        self.snowflakes.remove(flake)
-
-                pygame.draw.circle(self.screen, 'white', (flake[0], flake[1]), flake[3])
-
-        elif self.current_biome == 'snowy':
-            # Generate Snowflakes
-            for _ in range(75):  # Number of snowflakes
-                x = random.randint(0, WIDTH + 500)
-                y = random.randint(-200, 0)
-                speed = random.randint(2, 4)
-                size = random.randint(2, 4)
-                angle = random.randint(2, 4)
-                self.snowflakes.append([x, y, speed, size, angle])
-        
+        self.gui.handle_weather()
         self.gui.draw()
         
         # You die if you run out of stamina

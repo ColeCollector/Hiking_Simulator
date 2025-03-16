@@ -116,13 +116,14 @@ class Platforms:
 
             self.biome_builder_2('bog', 60, choices, [10, 6, 4, 3, 2, 2, 6, 6, 6, 6, 6, 6, 20, 20])
             
-            #self.biome_builder_1('bog', 10, [47, 200], 'log', [75, 100]) 
-            #self.biome_builder_1('bog', 8, [50, 10], 'ladder', [50, 100], True)   
-
             def generate_ladders(y):
                 self.game.positions.append(Platform(self.game, 'bog', None, [270 / 2 - 51, y], image_variety(self.game.images, 'rope')))
+                broken = random.randint(0, 6)
                 for i in range(4):
-                    self.game.positions.append(Platform(self.game, 'bog', [102, 30], [270 / 2 - 51, y + 60 * i], image_variety(self.game.images, 'ladder')))
+                    if broken == i:
+                        self.game.positions.append(Platform(self.game, 'bog', None, [270 / 2 - 51 - 3, y + 60 * i - 2], image_variety(self.game.images, 'broken_ladder')))
+                    else:
+                        self.game.positions.append(Platform(self.game, 'bog', [102, 30], [270 / 2 - 51, y + 60 * i], image_variety(self.game.images, 'ladder')))
 
             def generate_planks(y):
                 for i in range(2):
