@@ -10,10 +10,10 @@ A 2d game made using pygame about walking along a trail with various terrains an
 | **qualities**  | no damage      | damage always  | none           | loose rocks    | missing rung   |      ?         |
 
 
-| Bog Biome       | Boulder Biome  |
-|-----------------|----------------|
-| TO BE ADDED     | TO BE ADDED    |
+## Bog Biome
 
+![Image](https://github.com/user-attachments/assets/163e7008-222d-4da6-8035-f37fa908bc1a)
+---
 
 ## **Game Mechanics**
 - Swipe or click to move foot to the desired location.
@@ -43,8 +43,7 @@ You are able to choose three items, but you can pick the same item twice to doub
 
 ## Item Selection Screen
 
-TO BE ADDED
-
+![Image](https://github.com/user-attachments/assets/160b73ac-4705-4586-9d02-d71b29913008)
 ---
 
 ## Future update wishlist (not in the game yet):
